@@ -17,8 +17,8 @@ struct colour {
 };
 
 struct coordinate {
-	unsigned short int x;
-	unsigned short int y;
+	unsigned short int X;
+	unsigned short int Y;
 	unsigned short int Score;
 };
 
@@ -59,10 +59,10 @@ struct colour Int2Colour(int ColourInt) {
 
 void GetScore(struct coordinate Coordinates){
 	struct score Score = {0, 0, 0};
-	int X, Y;
-	for(X = Coordinates.x; X <= Coordinates.x + BallDiameter; X++){
-		for(Y = Coordinates.y; Y <= Coordinates.y + BallDiameter; Y++){
-			int PixelIndex = X + Y*myW;
+	int x, y;
+	for(x = Coordinates.X; x <= Coordinates.X + BallDiameter; x++){
+		for(y = Coordinates.Y; y <= Coordinates.Y + BallDiameter; y++){
+			int PixelIndex = x + y*myW;
 			struct colour PixelColour = Int2Colour(myPM[PixelIndex]);
 			if(PixelColour.R >= RBallMin.R && PixelColour.R <= RBallMax.R && PixelColour.G >= RBallMin.G && PixelColour.G <= RBallMax.G && PixelColour.B >= RBallMin.B && PixelColour.B <= RBallMax.B) Score.R++;
 			if(PixelColour.R >= YBallMin.R && PixelColour.R <= YBallMax.R && PixelColour.G >= YBallMin.G && PixelColour.G <= YBallMax.G && PixelColour.B >= YBallMin.B && PixelColour.B <= YBallMax.B) Score.Y++;
@@ -70,18 +70,18 @@ void GetScore(struct coordinate Coordinates){
 		}
 	}
 	if(Score.R > Red.Score){
-		Red.x = X;
-		Red.y = Y;
+		Red.X = x;
+		Red.Y = y;
 		Red.Score = Score.R;
 	}
 	if(Score.Y > Yellow.Score){
-		Yellow.x = X;
-		Yellow.y = Y;
+		Yellow.X = x;
+		Yellow.Y = y;
 		Yellow.Score = Score.Y;
 	}
 	if(Score.W > White.Score){
-		White.x = X;
-		White.y = Y;
+		White.X = x;
+		White.Y = y;
 		White.Score = Score.W;
 	}
 }
@@ -91,10 +91,10 @@ void GetScore(struct coordinate Coordinates){
 int main(int argc, char **argv) {
 
 	if(argc == 30){
-		TableMin.x = atoi(argv[1]);
-		TableMax.x = atoi(argv[2]);
-		TableMin.y = atoi(argv[3]);
-		TableMax.y = atoi(argv[4]);
+		TableMin.X = atoi(argv[1]);
+		TableMax.X = atoi(argv[2]);
+		TableMin.Y = atoi(argv[3]);
+		TableMax.Y = atoi(argv[4]);
 		RBallMin.R = atoi(argv[5]);
 		RBallMax.R = atoi(argv[6]);
 		RBallMin.G = atoi(argv[7]);
@@ -122,16 +122,16 @@ int main(int argc, char **argv) {
 		BallDiameter = atoi(argv[29]);
 	}
 
-	for(int X = TableMin.x; X <= TableMax.x - BallDiameter; X++){
-		for(int Y = TableMin.y; Y <= TableMax.y - BallDiameter; Y++){
-			struct coordinate PixelCoords = {X, Y, 0};
+	for(int x = TableMin.X; x <= TableMax.X - BallDiameter; x++){
+		for(int y = TableMin.Y; y <= TableMax.Y - BallDiameter; y++){
+			struct coordinate PixelCoords = {x, y, 0};
 			GetScore(PixelCoords);
 		}
 	}
 
-	printf("Red: %d, %d, %d\n", Red.x, Red.y, Red.Score);
-	printf("Yellow: %d, %d, %d\n", Yellow.x, Yellow.y, Yellow.Score);
-	printf("White: %d, %d, %d\n", White.x, White.y, White.Score);
+	printf("Red: %d, %d, %d\n", Red.X-1, Red.Y-1, Red.Score);
+	printf("Yellow: %d, %d, %d\n", Yellow.X-1, Yellow.Y-1, Yellow.Score);
+	printf("White: %d, %d, %d\n", White.X-1, White.Y-1, White.Score);
 
 
 
