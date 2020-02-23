@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "PM.h" //provisoire
 
@@ -107,28 +108,33 @@ int main(int argc, char **argv) {
 	int pixelIndex=0;
 	struct vect redPosition={0,0}, yellowPosition={0,0}, whitePosition={0,0};
 
+	int i,j;
 	for (i=Lmin;i<=Lmax-ballDiameter+1;i++) {
-		for (j=Cmin;j<=Cmax-ballDiameter+1;i++) {
+		for (j=Cmin;j<=Cmax-ballDiameter+1;j++) {
 			pixelIndex=i+j*myW;
 			testScore = getScore(pixelIndex,redBallRmin,redBallRmax,redBallGmin,redBallGmax,redBallBmin,redBallBmax,myH,myW,ballDiameter);
 			if (testScore>redScore) {
 				redScore=testScore;
-				redPosition={i+Lmin,j+Cmin};
+				redPosition.x=i;
+				redPosition.y=j;
 			}
 			testScore = getScore(pixelIndex,yellowBallRmin,yellowBallRmax,yellowBallGmin,yellowBallGmax,yellowBallBmin,yellowBallBmax,myH,myW,ballDiameter);
 			if (testScore>yellowScore) {
 				yellowScore=testScore;
-				yellowPosition={i+Lmin,j+Cmin};
+				yellowPosition.x=i;
+				yellowPosition.y=j;
 			}
 			testScore = getScore(pixelIndex,whiteBallRmin,whiteBallRmax,whiteBallGmin,whiteBallGmax,whiteBallBmin,whiteBallBmax,myH,myW,ballDiameter);
 			if (testScore>whiteScore) {
 				whiteScore=testScore;
-				whitePosition={i+Lmin,j+Cmin};
+				whitePosition.x=i;
+				whitePosition.y=j;
 			}
 		}
 	}
 
-	printf("Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d\n",redPosition.x,redPosition.y,redScore,yellowPosition.x,yellowPosition.y,yellowScore,redPosition.x,redPosition.y,redScore);
+	printf("Score red : %d score yellow %d : score white : %d\n",getScore(5040,160,255,0,160,0,160,myH,myW,ballDiameter),getScore(4060,140,255,140,255,0,175,myH,myW,ballDiameter),getScore(3020,100,255,100,255,100,255,myH,myW,ballDiameter)); //print de test, calcul des score des vrais positions
+	printf("Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d\n",redPosition.x,redPosition.y,redScore,yellowPosition.x,yellowPosition.y,yellowScore,whitePosition.x,whitePosition.y,whiteScore);
 }
 
 //Other functions writing
@@ -143,16 +149,16 @@ struct color intToColor(int colorInteger) {
 
 int getScore(int index, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax, int height, int width, int ballSize) {
 	int score = 0;
-	int pixColor={0,0,0};
+	struct color pixColor={0,0,0};
 
-	if (index%myW>myW-ballSize||index/myW>myH-ballSize) {
+	if ((index%myW>myW-ballSize)||(index/myW>myH-ballSize)) {
 		printf("Error : square corner too close to image border");
 		return -1;
 	};
 
-	for (int i=0;i<ballSize^2;i++) {
-		pixColor = intToColor(myPM[index+i*width/11+i%11]);
-		if (pixColor.red>=Rmin&&pixColor.red<=Rmax&&pixColor.green>=Gmin&&pixColor.green<=Gmax&&pixColor.blue>=Bmin&&pixColor.blue<=Bmax) score++;
+	for (int k=0;k<ballSize*ballSize;k++) {
+		pixColor = intToColor(myPM[index+k*myW/ballSize+k%ballSize]);
+		if ((pixColor.red>=Rmin)&&(pixColor.red<=Rmax)&&(pixColor.green>=Gmin)&&(pixColor.green<=Gmax)&&(pixColor.blue>=Bmin)&&(pixColor.blue<=Bmax)) score++;
 	}
 
 	return score;
