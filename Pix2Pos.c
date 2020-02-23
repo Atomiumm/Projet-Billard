@@ -46,15 +46,54 @@ struct color {
 
 struct color intToColor(int colorInteger); //Outputs a color structure based on an integer input
 
-int getScore(int index /*Designate the top left corner of the square*/, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax, int height, int width); //Calculates the score of a given 11*11 square for a given color range
+int getScore(int index /*Designate the top left corner of the square*/, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax, int height, int width, int ballSize); //Calculates the score of a given ballSize*ballSize square for a given color range
 
-/*Main writing*/
+//Main writing
 
 int main(int argc, char **argv) {
-	struct color pixColor;
-	pixColor = intToColor(myPM[0]);
-	printf("test int to color : R%d G%d B%d",pixColor.red,pixColor.green,pixColor.blue);
-    return 0;
+	int Lmin=15,Lmax=85,Cmin=15,Cmax=65,redBallRmin=160,redBallRmax=255,redBallGmin=0,redBallGmax=160,redBallBmin=0,redBallBmax=160,yellowBallRmin=140,yellowBallRmax=255,yellowBallGmin=140,yellowBallGmax=255,yellowBallBmin=0,yellowBallBmax=175,whiteBallRmin=100,whiteBallRmax=255,whiteBallGmin=100,whiteBallGmax=255,whiteBallBmin=100,whiteBallBmax=255,bgRmin=39,bgRmax=62,bgGmin=91,bgGmax=116,bgBmin=202,bgBmax=255,ballDiameter=11;
+
+	if (argc==30) {
+		Lmin=atoi(argv[1]);
+		Lmax=atoi(argv[2]);
+		Cmin=atoi(argv[3]);
+		Cmax=atoi(argv[4]);
+		redBallRmin=atoi(argv[5]);
+		redBallRmax=atoi(argv[6]);
+		redBallGmin=atoi(argv[7]);
+		redBallGmax=atoi(argv[8]);
+		redBallBmin=atoi(argv[9]);
+		redBallBmax=atoi(argv[10]);
+		yellowBallRmin=atoi(argv[11]);
+		yellowBallRmax=atoi(argv[12]);
+		yellowBallGmin=atoi(argv[13]);
+		yellowBallGmax=atoi(argv[14]);
+		yellowBallBmin=atoi(argv[15]);
+		yellowBallBmax=atoi(argv[16]);
+		whiteBallRmin=atoi(argv[17]);
+		whiteBallRmax=atoi(argv[18]);
+		whiteBallGmin=atoi(argv[19]);
+		whiteBallGmax=atoi(argv[20]);
+		whiteBallBmin=atoi(argv[21]);
+		whiteBallBmax=atoi(argv[22]);
+		bgRmin=atoi(argv[23]);
+		bgRmax=atoi(argv[24]);
+		bgGmin=atoi(argv[25]);
+		bgGmax=atoi(argv[26]);
+		bgBmin=atoi(argv[27]);
+		bgBmax=atoi(argv[28]);
+		ballDiameter=atoi(argv[29]);
+		if (/*neg value*/) {
+			printf("Error : negative value passed as a distance, cannot continue");
+			return 0;
+		}
+		if (/*color intensity>255 or <0; or min>max*/) {
+			printf("Error : invalid color range, cannot continue");
+			return 0;
+		}
+	} else {
+		printf("invalid number of argument, using default value");
+	}
 }
 
 //Other functions writing
@@ -67,13 +106,13 @@ struct color intToColor(int colorInteger) {
 	return colorOutput;
 }
 
-int getScore(int index, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax, int height, int width) {
+int getScore(int index, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax, int height, int width, int ballSize) {
 	int score = 0;
 	int pixColor={0,0,0};
 
-	if (index%11>width-11||index/11>height-11) return -1;
+	if (index%width>width-ballSize||index/width>height-ballSize) return -1;
 
-	for (int i=0;i<121;i++) {
+	for (int i=0;i<ballSize^2;i++) {
 		pixColor = intToColor(myPM[index+i*width/11+i%11]);
 		if (pixColor.red>=Rmin&&pixColor.red<=Rmax&&pixColor.green>=Gmin&&pixColor.green<=Gmax&&pixColor.blue>=Bmin&&pixColor.blue<=Bmax) score++;
 	}
