@@ -42,16 +42,27 @@ struct color {
 	int blue;
 };
 
-/*Functions declaration*/
+//Functions declaration
 
-struct color intToColor(int colorInteger); /*Outputs a color structure based on an integer input*/
+struct color intToColor(int colorInteger); //Outputs a color structure based on an integer input
 
-int getScore(int index /*Designate the top left corner of the square*/, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax); /*Calculates the score of a given 11*11 square for a given color range*/
+int getScore(int index /*Designate the top left corner of the square*/, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax); //Calculates the score of a given 11*11 square for a given color range
 
 /*Main writing*/
 
 int main(int argc, char **argv) {
+	struct color pixColor;
+	pixColor = intToColor(myPM[0]);
+	printf("test int to color : R%d G%d B%d",pixColor.red,pixColor.green,pixColor.blue);
     return 0;
 }
 
-/*Other functions writing*/
+//Other functions writing
+
+struct color intToColor(int colorInteger) {
+	struct color colorOutput;
+	colorOutput.blue = colorInteger%256;
+	colorOutput.green = (colorInteger/256)%256;
+	colorOutput.red = (colorInteger/65536)%256;
+	return colorOutput;
+}
