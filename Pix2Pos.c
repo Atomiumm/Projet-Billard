@@ -42,6 +42,12 @@ struct color {
 	int blue;
 };
 
+struct vect {
+	int x;
+	int y;
+};
+
+
 //Functions declaration
 
 struct color intToColor(int colorInteger); //Outputs a color structure based on an integer input
@@ -83,17 +89,46 @@ int main(int argc, char **argv) {
 		bgBmin=atoi(argv[27]);
 		bgBmax=atoi(argv[28]);
 		ballDiameter=atoi(argv[29]);
-		if (/*neg value*/) {
-			printf("Error : negative value passed as a distance, cannot continue");
+		if (0/*negative value or L,Cmin>max*/) {
+			printf("Error : invalid values passed as a distance, cannot continue\n");
 			return 0;
 		}
-		if (/*color intensity>255 or <0; or min>max*/) {
-			printf("Error : invalid color range, cannot continue");
+		if (0/*color intensity>255 or <0; or min>max*/) {
+			printf("Error : invalid color range, cannot continue\n");
 			return 0;
 		}
 	} else {
-		printf("invalid number of argument, using default value");
+		printf("invalid number of argument, continuing with default values\n");
 	}
+
+	//int widthTable = Lmax-Lmin+1;
+	//int heightTable = Cmax-Cmin+1;
+	int redScore=0,yellowScore=0,whiteScore=0, testScore=0;
+	int pixelIndex=0;
+	struct vect redPosition={0,0}, yellowPosition={0,0}, whitePosition={0,0};
+
+	for (i=Lmin;i<=Lmax-ballDiameter+1;i++) {
+		for (j=Cmin;j<=Cmax-ballDiameter+1;i++) {
+			pixelIndex=i+j*myW;
+			testScore = getScore(pixelIndex,redBallRmin,redBallRmax,redBallGmin,redBallGmax,redBallBmin,redBallBmax,myH,myW,ballDiameter);
+			if (testScore>redScore) {
+				redScore=testScore;
+				redPosition={i+Lmin,j+Cmin};
+			}
+			testScore = getScore(pixelIndex,yellowBallRmin,yellowBallRmax,yellowBallGmin,yellowBallGmax,yellowBallBmin,yellowBallBmax,myH,myW,ballDiameter);
+			if (testScore>yellowScore) {
+				yellowScore=testScore;
+				yellowPosition={i+Lmin,j+Cmin};
+			}
+			testScore = getScore(pixelIndex,whiteBallRmin,whiteBallRmax,whiteBallGmin,whiteBallGmax,whiteBallBmin,whiteBallBmax,myH,myW,ballDiameter);
+			if (testScore>whiteScore) {
+				whiteScore=testScore;
+				whitePosition={i+Lmin,j+Cmin};
+			}
+		}
+	}
+
+	printf("Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d\n",redPosition.x,redPosition.y,redScore,yellowPosition.x,yellowPosition.y,yellowScore,redPosition.x,redPosition.y,redScore);
 }
 
 //Other functions writing
@@ -110,7 +145,10 @@ int getScore(int index, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bm
 	int score = 0;
 	int pixColor={0,0,0};
 
-	if (index%width>width-ballSize||index/width>height-ballSize) return -1;
+	if (index%myW>myW-ballSize||index/myW>myH-ballSize) {
+		printf("Error : square corner too close to image border");
+		return -1;
+	};
 
 	for (int i=0;i<ballSize^2;i++) {
 		pixColor = intToColor(myPM[index+i*width/11+i%11]);
