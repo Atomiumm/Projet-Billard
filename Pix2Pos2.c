@@ -121,6 +121,33 @@ int main(int argc, char **argv) {
 		BGMax.B    = atoi(argv[28]);
 		BallDiameter = atoi(argv[29]);
 	}
+	else {
+		printf("Error : invalid number of argument, continuing with default values\n");
+	}
+
+	int flag = 0;
+	if(TableMin.X > TableMax.X || TableMin.Y > TableMax.Y){
+		printf("Error : invalid values passed as table size, cannot continue\n");
+		flag = 1;
+	}
+	if(RBallMin.R > RBallMax.R || RBallMin.G > RBallMax.G || RBallMin.B > RBallMax.B){
+		printf("Error : invalid values passed as red ball colour range, cannot continue\n");
+		flag = 1;
+	}
+	if(YBallMin.R > YBallMax.R || YBallMin.G > YBallMax.G || YBallMin.B > YBallMax.B){
+		printf("Error : invalid values passed as yellow ball colour range, cannot continue\n");
+		flag = 1;
+	}
+	if(WBallMin.R > WBallMax.R || WBallMin.G > WBallMax.G || WBallMin.B > WBallMax.B){
+		printf("Error : invalid values passed as white ball colour range, cannot continue\n");
+		flag = 1;
+	}
+	if(BGMin.R > BGMax.R || BGMin.G > BGMax.G || BGMin.B > BGMax.B){
+		printf("Error : invalid values passed as background colour range, cannot continue\n");
+		flag = 1;
+	}
+
+
 
 	for(int x = TableMin.X; x <= TableMax.X - BallDiameter; x++){
 		for(int y = TableMin.Y; y <= TableMax.Y - BallDiameter; y++){
@@ -145,6 +172,6 @@ int main(int argc, char **argv) {
 
 
 
-
+ 
 
 
