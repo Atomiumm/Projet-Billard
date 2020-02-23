@@ -33,6 +33,7 @@ struct score {
 struct coordinate Red = {0, 0, 0};
 struct coordinate Yellow = {0, 0, 0};
 struct coordinate White = {0, 0, 0};
+
 short unsigned int BallDiameter = 11;
 struct coordinate TableMin = {15, 15, 0};
 struct coordinate TableMax = {85, 65, 0};
