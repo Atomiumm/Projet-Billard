@@ -46,7 +46,7 @@ struct color {
 
 struct color intToColor(int colorInteger); //Outputs a color structure based on an integer input
 
-int getScore(int index /*Designate the top left corner of the square*/, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax); //Calculates the score of a given 11*11 square for a given color range
+int getScore(int index /*Designate the top left corner of the square*/, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax, int height, int width); //Calculates the score of a given 11*11 square for a given color range
 
 /*Main writing*/
 
@@ -65,4 +65,18 @@ struct color intToColor(int colorInteger) {
 	colorOutput.green = (colorInteger/256)%256;
 	colorOutput.red = (colorInteger/65536)%256;
 	return colorOutput;
+}
+
+int getScore(int index, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax, int height, int width) {
+	int score = 0;
+	int pixColor={0,0,0};
+
+	if (index%11>width-11||index/11>height-11) return -1;
+
+	for (int i=0;i<121;i++) {
+		pixColor = intToColor(myPM[index+i*width/11+i%11]);
+		if (pixColor.red>=Rmin&&pixColor.red<=Rmax&&pixColor.green>=Gmin&&pixColor.green<=Gmax&&pixColor.blue>=Bmin&&pixColor.blue<=Bmax) score++;
+	}
+
+	return score;
 }
