@@ -44,25 +44,14 @@ struct color {
 
 /*Functions declaration*/
 
-int getScore(int index, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax); /*Calculates the score of a given 11*11 square based on a given color range*/
+struct color intToColor(int colorInteger); /*Outputs a color structure based on an integer input*/
 
-struct color intToColor(int integerColor);
+int getScore(int index /*Designate the top left corner of the square*/, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax); /*Calculates the score of a given 11*11 square for a given color range*/
 
-unsigned char convert_to_hex(unsigned int* Dec_List, unsigned int Width, unsigned int Height);
+/*Main writing*/
 
-/*Writing main*/
-
-int main(int argc, char **argv){
-	printf("test");
-
+int main(int argc, char **argv) {
     return 0;
 }
 
-/*Writing other functions*/
-
-unsigned char convert_to_hex(unsigned int* Dec_List, unsigned int Width, unsigned int Height) {
-	char (*Hex_List)[Width*Height][11]; //declaring a list of 11-character strings to store the new hexadecimal values
-	strcpy(Hex_List[0],"Test12345\0");
-	printf("%s", Hex_List[0]);
-	return Hex_List;
-}
+/*Other functions writing*/
