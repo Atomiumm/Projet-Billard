@@ -156,9 +156,11 @@ int getScore(int index, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bm
 		return -1;
 	};
 
-	for (int k=0;k<ballSize*ballSize;k++) {
-		pixColor = intToColor(myPM[index+k*myW/ballSize+k%ballSize]);
-		if ((pixColor.red>=Rmin)&&(pixColor.red<=Rmax)&&(pixColor.green>=Gmin)&&(pixColor.green<=Gmax)&&(pixColor.blue>=Bmin)&&(pixColor.blue<=Bmax)) score++;
+	for (int xPos=index%myW;xPos<index%myW+ballSize;xPos++) {
+		for (int yPos = index/myW ; yPos < index/myW + ballSize ; yPos++) {
+			pixColor = intToColor(myPM[xPos+yPos*myW]);
+			if ((pixColor.red>=Rmin)&&(pixColor.red<=Rmax)&&(pixColor.green>=Gmin)&&(pixColor.green<=Gmax)&&(pixColor.blue>=Bmin)&&(pixColor.blue<=Bmax)) score++;
+		}
 	}
 
 	return score;
