@@ -170,34 +170,34 @@ void GetScore(struct coordinate Coordinates){
 int main(int argc, char **argv) {
 
 	if(argc == 30){
-		TableMin.X = atoi(argv[1]);
-		TableMax.X = atoi(argv[2]);
-		TableMin.Y = atoi(argv[3]);
-		TableMax.Y = atoi(argv[4]);
-		RBallMin.R = atoi(argv[5]);
-		RBallMax.R = atoi(argv[6]);
-		RBallMin.G = atoi(argv[7]);
-		RBallMax.G = atoi(argv[8]);
-		RBallMin.B = atoi(argv[9]);
-		RBallMax.B = atoi(argv[10]);
-		YBallMin.R = atoi(argv[11]);
-		YBallMax.R = atoi(argv[12]);
-		YBallMin.G = atoi(argv[13]);
-		YBallMax.G = atoi(argv[14]);
-		YBallMin.B = atoi(argv[15]);
-		YBallMax.B = atoi(argv[16]);
-		WBallMin.R = atoi(argv[17]);
-		WBallMax.R = atoi(argv[18]);
-		WBallMin.G = atoi(argv[19]);
-		WBallMax.G = atoi(argv[20]);
-		WBallMin.B = atoi(argv[21]);
-		WBallMax.B = atoi(argv[22]);
-		BGMin.R    = atoi(argv[23]);
-		BGMax.R    = atoi(argv[24]);
-		BGMin.G    = atoi(argv[25]);
-		BGMax.G    = atoi(argv[26]);
-		BGMin.B    = atoi(argv[27]);
-		BGMax.B    = atoi(argv[28]);
+		TableMin.X   = atoi(argv[1]);
+		TableMax.X   = atoi(argv[2]);
+		TableMin.Y   = atoi(argv[3]);
+		TableMax.Y   = atoi(argv[4]);
+		RBallMin.R   = atoi(argv[5]);
+		RBallMax.R   = atoi(argv[6]);
+		RBallMin.G   = atoi(argv[7]);
+		RBallMax.G   = atoi(argv[8]);
+		RBallMin.B   = atoi(argv[9]);
+		RBallMax.B   = atoi(argv[10]);
+		YBallMin.R   = atoi(argv[11]);
+		YBallMax.R   = atoi(argv[12]);
+		YBallMin.G   = atoi(argv[13]);
+		YBallMax.G   = atoi(argv[14]);
+		YBallMin.B   = atoi(argv[15]);
+		YBallMax.B   = atoi(argv[16]);
+		WBallMin.R   = atoi(argv[17]);
+		WBallMax.R   = atoi(argv[18]);
+		WBallMin.G   = atoi(argv[19]);
+		WBallMax.G   = atoi(argv[20]);
+		WBallMin.B   = atoi(argv[21]);
+		WBallMax.B   = atoi(argv[22]);
+		BGMin.R      = atoi(argv[23]);
+		BGMax.R      = atoi(argv[24]);
+		BGMin.G      = atoi(argv[25]);
+		BGMax.G      = atoi(argv[26]);
+		BGMin.B      = atoi(argv[27]);
+		BGMax.B      = atoi(argv[28]);
 		BallDiameter = atoi(argv[29]);
 	}
 	else {
@@ -245,14 +245,3 @@ int main(int argc, char **argv) {
 
 	return 0;
 }
-
-
-
-
-
-
-
-
- 
-
-
