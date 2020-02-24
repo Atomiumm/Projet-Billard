@@ -100,12 +100,6 @@ struct coordinate {
 	unsigned short int Score;
 };
 
-struct score {
-	unsigned short int R;
-	unsigned short int Y;
-	unsigned short int W;
-};
-
 
 /* Global Variables */
 struct coordinate Red = {0, 0, 0};
@@ -137,31 +131,31 @@ struct colour Int2Colour(int ColourInt) {
 }
 
 void GetScore(struct coordinate Coordinates){
-	struct score Score = {0, 0, 0};
-	int x, y;
+	unsigned short int x, y;
+	unsigned short int scoreR = 0, scoreY = 0, scoreW = 0;
 	for(x = Coordinates.X; x <= Coordinates.X + BallDiameter; x++){
 		for(y = Coordinates.Y; y <= Coordinates.Y + BallDiameter; y++){
 			int PixelIndex = x + y*myW;
 			struct colour PixelColour = Int2Colour(myPM[PixelIndex]);
-			if(PixelColour.R >= RBallMin.R && PixelColour.R <= RBallMax.R && PixelColour.G >= RBallMin.G && PixelColour.G <= RBallMax.G && PixelColour.B >= RBallMin.B && PixelColour.B <= RBallMax.B) Score.R++;
-			if(PixelColour.R >= YBallMin.R && PixelColour.R <= YBallMax.R && PixelColour.G >= YBallMin.G && PixelColour.G <= YBallMax.G && PixelColour.B >= YBallMin.B && PixelColour.B <= YBallMax.B) Score.Y++;
-			if(PixelColour.R >= WBallMin.R && PixelColour.R <= WBallMax.R && PixelColour.G >= WBallMin.G && PixelColour.G <= WBallMax.G && PixelColour.B >= WBallMin.B && PixelColour.B <= WBallMax.B) Score.W++;
+			if(PixelColour.R >= RBallMin.R && PixelColour.R <= RBallMax.R && PixelColour.G >= RBallMin.G && PixelColour.G <= RBallMax.G && PixelColour.B >= RBallMin.B && PixelColour.B <= RBallMax.B) scoreR++;
+			if(PixelColour.R >= YBallMin.R && PixelColour.R <= YBallMax.R && PixelColour.G >= YBallMin.G && PixelColour.G <= YBallMax.G && PixelColour.B >= YBallMin.B && PixelColour.B <= YBallMax.B) scoreY++;
+			if(PixelColour.R >= WBallMin.R && PixelColour.R <= WBallMax.R && PixelColour.G >= WBallMin.G && PixelColour.G <= WBallMax.G && PixelColour.B >= WBallMin.B && PixelColour.B <= WBallMax.B) scoreW++;
 		}
 	}
-	if(Score.R > Red.Score){
+	if(scoreR > Red.Score){
 		Red.X = x;
 		Red.Y = y;
-		Red.Score = Score.R;
+		Red.Score = scoreR;
 	}
-	if(Score.Y > Yellow.Score){
+	if(scoreY > Yellow.Score){
 		Yellow.X = x;
 		Yellow.Y = y;
-		Yellow.Score = Score.Y;
+		Yellow.Score = scoreY;
 	}
-	if(Score.W > White.Score){
+	if(scoreW > White.Score){
 		White.X = x;
 		White.Y = y;
-		White.Score = Score.W;
+		White.Score = scoreW;
 	}
 }
 
