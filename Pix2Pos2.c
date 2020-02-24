@@ -39,7 +39,7 @@ struct coordinate {
 /* Function definition */
 struct colour Int2Colour(int ColourInt) {
 	struct colour ColourRGB;
-	if(ColourInt < 0 || ColourInt >= 16777216){
+	if(ColourInt < 0 || ColourInt > 16777215){
 		ColourRGB.R = -1;
 		ColourRGB.G = -1;		//Ca me fait chier et on doit changer
 		ColourRGB.B = -1;
