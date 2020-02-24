@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "PM.h"
+#include "PM.h"		//provisoire
 
 
 /* Structure definition */
@@ -19,21 +19,21 @@ struct coordinate {
 
 
 /* Global Variables */
-struct coordinate Red = {0, 0, 0};
-struct coordinate Yellow = {0, 0, 0};
-struct coordinate White = {0, 0, 0};
-
-short unsigned int BallDiameter = 11;
-struct coordinate TableMin = {15, 15, 0};
-struct coordinate TableMax = {85, 65, 0};
-struct colour RBallMin = {160, 0, 0};
-struct colour RBallMax = {255, 160, 160};
-struct colour YBallMin = {140, 140, 0};
-struct colour YBallMax = {255, 255, 175};
-struct colour WBallMin = {100, 100, 100};
-struct colour WBallMax = {255, 255, 255};
-struct colour BGMin = {39, 91, 202};
-struct colour BGMax = {62, 116, 255};
+	struct coordinate Red = {0, 0, 0};
+	struct coordinate Yellow = {0, 0, 0};
+	struct coordinate White = {0, 0, 0};
+	
+	short unsigned int BallDiameter = 11;
+	struct coordinate TableMin = {15, 15, 0};
+	struct coordinate TableMax = {85, 65, 0};
+	struct colour RBallMin = {160, 0, 0};
+	struct colour RBallMax = {255, 160, 160};
+	struct colour YBallMin = {140, 140, 0};
+	struct colour YBallMax = {255, 255, 175};
+	struct colour WBallMin = {100, 100, 100};
+	struct colour WBallMax = {255, 255, 255};
+	struct colour BGMin = {39, 91, 202};
+	struct colour BGMax = {62, 116, 255};
 
 
 /* Function definition */
