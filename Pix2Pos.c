@@ -53,43 +53,45 @@ struct vect {
 
 struct color intToColor(int colorInteger); //Outputs a color structure based on an integer input
 
-int getScore(int index /*Designate the top left corner of the square*/, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax, int height, int width, int ballSize); //Calculates the score of a given ballSize*ballSize square for a given color range
+int getScore(int index /*Designate the top left corner of the square*/, struct color min, struct color max, int height, int width, int ballSize); //Calculates the score of a given ballSize*ballSize square for a given color range
 
 //Main writing
 
 int main(int argc, char **argv) {
-	int Lmin=15,Lmax=85,Cmin=15,Cmax=65,redBallRmin=160,redBallRmax=255,redBallGmin=0,redBallGmax=160,redBallBmin=0,redBallBmax=160,yellowBallRmin=140,yellowBallRmax=255,yellowBallGmin=140,yellowBallGmax=255,yellowBallBmin=0,yellowBallBmax=175,whiteBallRmin=100,whiteBallRmax=255,whiteBallGmin=100,whiteBallGmax=255,whiteBallBmin=100,whiteBallBmax=255,bgRmin=39,bgRmax=62,bgGmin=91,bgGmax=116,bgBmin=202,bgBmax=255,ballDiameter=11;
+	int ballDiameter=11;
+	struct vect topLeftCorner={15,15}, bottomRightCorner={85,65};
+	struct color redBallMin = {160,0,0}, redBallMax = {255,160,160}, yellowBallMin = {140,140,0}, yellowBallMax = {255,255,175}, whiteBallMin = {100,100,100}, whiteBallMax = {255,255,255}, backGroundMin = {39,62,91}, backGroundMax = {116,202,255};
 
 	if (argc==30) {
-		Lmin=atoi(argv[1]);
-		Lmax=atoi(argv[2]);
-		Cmin=atoi(argv[3]);
-		Cmax=atoi(argv[4]);
-		redBallRmin=atoi(argv[5]);
-		redBallRmax=atoi(argv[6]);
-		redBallGmin=atoi(argv[7]);
-		redBallGmax=atoi(argv[8]);
-		redBallBmin=atoi(argv[9]);
-		redBallBmax=atoi(argv[10]);
-		yellowBallRmin=atoi(argv[11]);
-		yellowBallRmax=atoi(argv[12]);
-		yellowBallGmin=atoi(argv[13]);
-		yellowBallGmax=atoi(argv[14]);
-		yellowBallBmin=atoi(argv[15]);
-		yellowBallBmax=atoi(argv[16]);
-		whiteBallRmin=atoi(argv[17]);
-		whiteBallRmax=atoi(argv[18]);
-		whiteBallGmin=atoi(argv[19]);
-		whiteBallGmax=atoi(argv[20]);
-		whiteBallBmin=atoi(argv[21]);
-		whiteBallBmax=atoi(argv[22]);
-		bgRmin=atoi(argv[23]);
-		bgRmax=atoi(argv[24]);
-		bgGmin=atoi(argv[25]);
-		bgGmax=atoi(argv[26]);
-		bgBmin=atoi(argv[27]);
-		bgBmax=atoi(argv[28]);
-		ballDiameter=atoi(argv[29]);
+		topLeftCorner.x     = atoi(argv[1]);
+		bottomRightCorner.x = atoi(argv[2]);
+		topLeftCorner.y     = atoi(argv[3]);
+		bottomRightCorner.y = atoi(argv[4]);
+		redBallMin.red      = atoi(argv[5]);
+		redBallMax.red      = atoi(argv[6]);
+		redBallMin.green    = atoi(argv[7]);
+		redBallMax.green    = atoi(argv[8]);
+		redBallMin.blue     = atoi(argv[9]);
+		redBallMax.blue     = atoi(argv[10]);
+		yellowBallMin.red   = atoi(argv[11]);
+		yellowBallMax.red   = atoi(argv[12]);
+		yellowBallMin.green = atoi(argv[13]);
+		yellowBallMax.green = atoi(argv[14]);
+		yellowBallMin.blue  = atoi(argv[15]);
+		yellowBallMax.blue  = atoi(argv[16]);
+		whiteBallMin.red    = atoi(argv[17]);
+		whiteBallMax.red    = atoi(argv[18]);
+		whiteBallMin.green  = atoi(argv[19]);
+		whiteBallMax.green  = atoi(argv[20]);
+		whiteBallMin.blue   = atoi(argv[21]);
+		whiteBallMax.blue   = atoi(argv[22]);
+		backGroundMin.red   = atoi(argv[23]);
+		backGroundMax.red   = atoi(argv[24]);
+		backGroundMin.green = atoi(argv[25]);
+		backGroundMax.green = atoi(argv[26]);
+		backGroundMin.blue  = atoi(argv[27]);
+		backGroundMax.blue  = atoi(argv[28]);
+		ballDiameter   = atoi(argv[29]);
 		if (0/*negative value or L,Cmin>max*/) {
 			printf("Error : invalid values passed as a distance, cannot continue\n");
 			return 0;
@@ -133,7 +135,6 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	printf("Score red : %d score yellow %d : score white : %d\n",getScore(5040,160,255,0,160,0,160,myH,myW,ballDiameter),getScore(4060,140,255,140,255,0,175,myH,myW,ballDiameter),getScore(3020,100,255,100,255,100,255,myH,myW,ballDiameter)); //print de test, calcul des score des vrais positions
 	printf("Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d\n",redPosition.x,redPosition.y,redScore,yellowPosition.x,yellowPosition.y,yellowScore,whitePosition.x,whitePosition.y,whiteScore);
 }
 
@@ -147,19 +148,19 @@ struct color intToColor(int colorInteger) {
 	return colorOutput;
 }
 
-int getScore(int index, int Rmin, int Rmax, int Gmin, int Gmax, int Bmin, int Bmax, int height, int width, int ballSize) {
+int getScore(int index, struct color minRange, struct color maxRange, int height, int width, int ballDiameter) {
 	int score = 0;
 	struct color pixColor={0,0,0};
 
-	if ((index%myW>myW-ballSize)||(index/myW>myH-ballSize)) {
+	if ((index%width>width-ballDiameter)||(index/width>height-ballDiameter)) {
 		printf("Error : square corner too close to image border");
 		return -1;
 	};
 
-	for (int xPos=index%myW;xPos<index%myW+ballSize;xPos++) {
-		for (int yPos = index/myW ; yPos < index/myW + ballSize ; yPos++) {
-			pixColor = intToColor(myPM[xPos+yPos*myW]);
-			if ((pixColor.red>=Rmin)&&(pixColor.red<=Rmax)&&(pixColor.green>=Gmin)&&(pixColor.green<=Gmax)&&(pixColor.blue>=Bmin)&&(pixColor.blue<=Bmax)) score++;
+	for (int xPos=index%width;xPos<index%width+ballDiameter;xPos++) {
+		for (int yPos = index/width ; yPos < index/width + ballDiameter ; yPos++) {
+			pixColor = intToColor(myPM[xPos+yPos*width]);
+			if ((pixColor.red >= minRange.red) && (pixColor.red <= maxRange.red) && (pixColor.green >= minRange.green) && (pixColor.green <= maxRange.green) && (pixColor.blue >= minRange.blue) && (pixColor.blue <= maxRange.blue)) score++;
 		}
 	}
 
