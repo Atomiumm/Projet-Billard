@@ -339,17 +339,13 @@ int main(int argc, char **argv) {
 	PixelInt = malloc(sizeof(unsigned int)*PixelWidth*PixelHeight+1);
 	for(int index = 0; index <= PixelWidth*PixelHeight; index += 1){
 		int temp = fread((PixelInt+index), sizeof(unsigned int), 1, PixmapBin);
-		if(1 != temp){
-			if(!(index == PixelWidth*PixelHeight)){
-				printf("Error : couldn't read pixel %d, cannot continue\n", index);
-				exit(0);
-			}
+		if(1 != temp && !(index == PixelWidth*PixelHeight)){
+			printf("Error : couldn't read pixel %d, cannot continue\n", index);
+			exit(0);
 		}
-		if(index == PixelWidth*PixelHeight){
-			if(1 == temp){
-				printf("Error : too many pixels, cannot continue\n");
-				exit(0);
-			}
+		if(index == PixelWidth*PixelHeight && 1 == temp){
+			printf("Error : too many pixels, cannot continue\n");
+			exit(0);
 		}
 	}
 	
