@@ -313,10 +313,7 @@ int main(int argc, char **argv) {
 		printf("Error : invalid values passed as ball size, cannot continue\n");
 		ErrorFlag = 1;
 	}
-	if(sizeof(PixelInt)/sizeof(int) < PixelHeight*PixelWidth){
-		printf("Error : pixels are missing, cannot continue\n");
-		ErrorFlag = 1;
-	}
+
 	if(ErrorFlag) return 0;
 
 	PixmapBin = fopen("Pixmap.bin", "r");
@@ -339,7 +336,7 @@ int main(int argc, char **argv) {
 	if(ErrorFlag) return 0;
 
 	//printf("Image size: %d, %d\n", PixelWidth, PixelHeight);
-	PixelInt = malloc(sizeof(unsigned int)*PixelWidth*PixelHeight);
+	PixelInt = malloc(sizeof(unsigned int)*PixelWidth*PixelHeight-1);
 	for(int index = 0; index < PixelWidth*PixelHeight; index += 1){
 		int temp = fread((PixelInt+index), sizeof(unsigned int), 1, PixmapBin);
 		if(1 != temp){
