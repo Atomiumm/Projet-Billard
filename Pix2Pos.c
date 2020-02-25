@@ -121,6 +121,10 @@ int main(int argc, char **argv) {
 			printf("Error : invalid values passed as background colour range, cannot continue\n");
 			errFlag = 1;
 		}
+		if (ballDiameter < 5 || ballDiameter > 20) {
+			printf("Error : ball diameter outside legal bounds\n");
+			errFlag = 1;
+		}
 		if (ballDiameter > bottomRightCorner.x-topLeftCorner.x || ballDiameter > bottomRightCorner.y-topLeftCorner.y) {
 			printf("Error : ball is larger than table, cannot process\n");
 			errFlag = 1;
