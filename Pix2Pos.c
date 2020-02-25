@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "PM.h" //provisoire
 
 /*
 Le programme va lire le fichier Pixmap.bin contenant les pixels de l’image. 
@@ -76,8 +75,8 @@ int main(int argc, char **argv) {
 	unsigned int storeReturn;
 
 	FILE *binmap;
-	binmap = fopen("pixmap.bin","r");
-	if (binmap=='NULL') {
+	binmap = fopen("Pixmap.bin","r");
+	if (binmap==NULL) {
 		printf("Error : cannot access pixmap\n");
 		errFlag = 1;
 	}
@@ -94,17 +93,24 @@ int main(int argc, char **argv) {
 		errFlag = 1;
 	}
 
-	if (errFlag) return 0; //end the program if an error as occured since errors in file reading prevents further advancement
+	if (errFlag) {
+		fclose(binmap);
+		return 0; //end the program if an error as occured since errors in file reading prevents further advancement
+	}
 
-	pixMap = malloc(imageWidth*imageHeight);
-	if (pixMap=='NULL') {
+	pixMap = malloc(imageWidth*imageHeight*sizeof(unsigned int));
+	if (pixMap==NULL) {
 		printf("Error : cannot allocate space for the pixMap\n");
+		free(pixMap);
+		fclose(binmap);
 		return 0; //instantly ends the program since this error will prevent any further advancement
 	}
 
-	storeReturn = fread(pixMap,3,imageWidth*imageHeight,binmap);
+	storeReturn = fread(pixMap,sizeof(unsigned int),imageWidth*imageHeight,binmap);
 	if (storeReturn!=imageWidth*imageHeight) {
 		printf("Error : cannot read pixel values\n");
+		free(pixMap);
+		fclose(binmap);
 		return 0;
 	}
 
@@ -175,7 +181,10 @@ int main(int argc, char **argv) {
 		printf("invalid number of argument, continuing with default values\n");
 	}
 
-	if (errFlag) return 0;
+	if (errFlag) {
+		free(pixMap);
+		return 0;
+	}
 
 	//Once program arguments registered, initializing useful variables to spot the balls
 	int redScore=0,yellowScore=0,whiteScore=0, testScore=0;
@@ -281,9 +290,15 @@ int main(int argc, char **argv) {
 		errFlag = 1;
 	}
 
-	if (errFlag) return 0;
+	if (errFlag) {
+		free(pixMap);
+		return 0;
+	}
 
 	printf("Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d\n",redPosition.x,redPosition.y,redScore,yellowPosition.x,yellowPosition.y,yellowScore,whitePosition.x,whitePosition.y,whiteScore);
+
+	free(pixMap);
+	return 0;
 }
 
 //Other functions writing
