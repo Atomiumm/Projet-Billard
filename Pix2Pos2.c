@@ -296,11 +296,6 @@ int main(int argc, char **argv) {
 		printf("Error : couldn't open Pixmap.bin");
 		return 0;
 	}
-	int len = 1;
-	for(char c = getc(PixmapBin); c != EOF; c = getc(PixmapBin)) 
-        if (c == '\n')
-            len = len + 1; 
-    PixelInt = (int *) malloc(len-2);
 	if(1 != fread(&PixelWidth, sizeof(unsigned int), 1, PixmapBin)){
 		printf("Error : couldn't read image width, cannot continue\n");
 		flag = 1;
@@ -309,6 +304,7 @@ int main(int argc, char **argv) {
 		printf("Error : couldn't read image height, cannot continue\n");
 		flag = 1;
 	}
+	
 
     printf("%d, %d\n", PixelWidth, PixelHeight);
 
