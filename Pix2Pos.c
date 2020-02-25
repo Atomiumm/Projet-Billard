@@ -35,7 +35,7 @@ Yellow: Xyellow, Yyellow, ScoreYellow
 White: Xwhite, Ywhite, ScoreWhite
 */
 
-/*Structures declaration*/
+//Structures declaration
 
 struct color {
 	int red;
