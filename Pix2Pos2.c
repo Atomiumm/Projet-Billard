@@ -12,9 +12,9 @@ struct colour {
 };
 
 struct coordinate {
-	unsigned short int X;
-	unsigned short int Y;
-	unsigned short int Score;
+	signed short int X;
+	signed short int Y;
+	signed short int Score;
 };
 
 
@@ -23,7 +23,7 @@ struct coordinate {
 	struct coordinate Yellow = {0, 0, 0};
 	struct coordinate White = {0, 0, 0};
 	
-	short unsigned int BallDiameter = 11;
+	short signed int BallDiameter = 11;
 	struct coordinate TableMin = {15, 15, 0};
 	struct coordinate TableMax = {85, 65, 0};
 	struct colour RBallMin = {160, 0, 0};
@@ -39,7 +39,7 @@ struct coordinate {
 /* Function definition */
 struct colour Int2Colour(int ColourInt) {
 	struct colour ColourRGB;
-	if(ColourInt < 0 || ColourInt >= 16777216){
+	if(ColourInt < 0 || ColourInt > 16777215){
 		ColourRGB.R = -1;
 		ColourRGB.G = -1;		//Ca me fait chier et on doit changer
 		ColourRGB.B = -1;
@@ -53,34 +53,35 @@ struct colour Int2Colour(int ColourInt) {
 	return ColourRGB;
 }
 
-void Modify_Result(struct coordinate Coordinates){
-	unsigned short int x, y;
-	unsigned short int scoreR = 0, scoreY = 0, scoreW = 0;
-	for(x = Coordinates.X; x <= Coordinates.X + BallDiameter; x++){
-		for(y = Coordinates.Y; y <= Coordinates.Y + BallDiameter; y++){
-			unsigned int PixelIndex = x + y*myW;
-			struct colour PixelColour = Int2Colour(myPM[PixelIndex]);
-			if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) printf("Error : colour error at pixel %d ignoring pixel\n", PixelIndex);
-			else{
-				if(PixelColour.R >= RBallMin.R && PixelColour.R <= RBallMax.R && PixelColour.G >= RBallMin.G && PixelColour.G <= RBallMax.G && PixelColour.B >= RBallMin.B && PixelColour.B <= RBallMax.B) scoreR++;
-				if(PixelColour.R >= YBallMin.R && PixelColour.R <= YBallMax.R && PixelColour.G >= YBallMin.G && PixelColour.G <= YBallMax.G && PixelColour.B >= YBallMin.B && PixelColour.B <= YBallMax.B) scoreY++;
-				if(PixelColour.R >= WBallMin.R && PixelColour.R <= WBallMax.R && PixelColour.G >= WBallMin.G && PixelColour.G <= WBallMax.G && PixelColour.B >= WBallMin.B && PixelColour.B <= WBallMax.B) scoreW++;
-			}
+int GetScore(struct coordinate Coordinates, int DeltaX, int DeltaY, struct colour RangeMin, struct colour RangeMax){
+	int Score = 0;
+	for(int x = Coordinates.X; x < Coordinates.X + DeltaX; x++){
+		for(int y = Coordinates.Y; y < Coordinates.Y + DeltaY; y++){
+			struct colour PixelColour = Int2Colour(myPM[x + y*myW]);
+			if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) printf("Error : colour error at pixel %d ignoring pixel\n", x + y*myW);
+			if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
 		}
 	}
+	return Score;
+}
+
+void Modify_Results(struct coordinate Coordinates){
+	int scoreR = GetScore(Coordinates, BallDiameter, BallDiameter, RBallMin, RBallMax);
 	if(scoreR > Red.Score){
-		Red.X = x;
-		Red.Y = y;
+		Red.X = Coordinates.X;
+		Red.Y = Coordinates.Y;
 		Red.Score = scoreR;
 	}
+	int scoreY = GetScore(Coordinates, BallDiameter, BallDiameter, YBallMin, YBallMax);
 	if(scoreY > Yellow.Score){
-		Yellow.X = x;
-		Yellow.Y = y;
+		Yellow.X = Coordinates.X;
+		Yellow.Y = Coordinates.Y;
 		Yellow.Score = scoreY;
 	}
+	int scoreW = GetScore(Coordinates, BallDiameter, BallDiameter, WBallMin, WBallMax);
 	if(scoreW > White.Score){
-		White.X = x;
-		White.Y = y;
+		White.X = Coordinates.X;
+		White.Y = Coordinates.Y;
 		White.Score = scoreW;
 	}
 }
@@ -125,26 +126,33 @@ int main(int argc, char **argv) {
 	}
 
 	int flag = 0;
-	if(TableMin.X > TableMax.X || TableMin.Y > TableMax.Y){
+	if(TableMin.X > TableMax.X || TableMin.Y > TableMax.Y || TableMin.X < 0 || TableMin.Y < 0){
 		printf("Error : invalid values passed as table size, cannot continue\n");
 		flag = 1;
 	}
-	if(RBallMin.R > RBallMax.R || RBallMin.G > RBallMax.G || RBallMin.B > RBallMax.B){
+	if(RBallMin.R > RBallMax.R || RBallMin.G > RBallMax.G || RBallMin.B > RBallMax.B || RBallMin.R < 0 || RBallMin.G < 0 || RBallMin.B < 0){
 		printf("Error : invalid values passed as red ball colour range, cannot continue\n");
 		flag = 1;
 	}
-	if(YBallMin.R > YBallMax.R || YBallMin.G > YBallMax.G || YBallMin.B > YBallMax.B){
+	if(YBallMin.R > YBallMax.R || YBallMin.G > YBallMax.G || YBallMin.B > YBallMax.B || YBallMin.R < 0 || YBallMin.G < 0 || YBallMin.B < 0){
 		printf("Error : invalid values passed as yellow ball colour range, cannot continue\n");
 		flag = 1;
 	}
-	if(WBallMin.R > WBallMax.R || WBallMin.G > WBallMax.G || WBallMin.B > WBallMax.B){
+	if(WBallMin.R > WBallMax.R || WBallMin.G > WBallMax.G || WBallMin.B > WBallMax.B || WBallMin.R < 0 || WBallMin.G < 0 || WBallMin.B < 0){
 		printf("Error : invalid values passed as white ball colour range, cannot continue\n");
 		flag = 1;
 	}
-	if(BGMin.R > BGMax.R || BGMin.G > BGMax.G || BGMin.B > BGMax.B){
+	if(BGMin.R > BGMax.R || BGMin.G > BGMax.G || BGMin.B > BGMax.B || BGMin.R < 0 || BGMin.G < 0 || BGMin.B < 0){
 		printf("Error : invalid values passed as background colour range, cannot continue\n");
 		flag = 1;
 	}
+	if(BallDiameter < 0){
+		printf("Error : invalid values passed as ball size, cannot continue\n");
+	}
+	if(TableMax.X - TableMin.X < BallDiameter || TableMax.Y - TableMin.Y < BallDiameter){
+		printf("Error : invalid values passed as table and ball size, ball is bigger than table, cannot continue\n");
+		flag = 1;
+	}	
 	if(flag) return 0;
 
 
@@ -152,16 +160,29 @@ int main(int argc, char **argv) {
 	for(int x = TableMin.X; x <= TableMax.X - BallDiameter; x++){
 		for(int y = TableMin.Y; y <= TableMax.Y - BallDiameter; y++){
 			struct coordinate PixelCoords = {x, y, 0};
-			Modify_Result(PixelCoords);
+			Modify_Results(PixelCoords);
 		}
 	}
 
 
 
-	printf("Red: %d, %d, %d\n", Red.X-1, Red.Y-1, Red.Score);
-	printf("Yellow: %d, %d, %d\n", Yellow.X-1, Yellow.Y-1, Yellow.Score);
-	printf("White: %d, %d, %d\n", White.X-1, White.Y-1, White.Score);
+	printf("Red: %d, %d, %d\n", Red.X, Red.Y, Red.Score);
+	printf("Yellow: %d, %d, %d\n", Yellow.X, Yellow.Y, Yellow.Score);
+	printf("White: %d, %d, %d\n", White.X, White.Y, White.Score);
 
 
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
