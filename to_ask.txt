@@ -1,2 +1,3 @@
 - Are global variables OK ?
 - Multiple initialisation for a single variable
+- pow(x,2) or x*x ?

@@ -66,6 +66,9 @@ int main(int argc, char **argv) {
 	struct vect topLeftCorner={15,15}, bottomRightCorner={85,65};
 	struct color redBallMin = {160,0,0}, redBallMax = {255,160,160}, yellowBallMin = {140,140,0}, yellowBallMax = {255,255,175}, whiteBallMin = {100,100,100}, whiteBallMax = {255,255,255}, backGroundMin = {39,62,91}, backGroundMax = {116,202,255};
 
+	//An error flag tracking various errors. Allow to check and warn for different errors before exiting the program
+	int errFlag = 0;
+
 	//Storing the program arguments while testing their validity
 	if (argc==30) {
 		topLeftCorner.x     = atoi(argv[1]);
@@ -98,7 +101,6 @@ int main(int argc, char **argv) {
 		backGroundMax.blue  = atoi(argv[28]);
 		ballDiameter        = atoi(argv[29]);
 
-		int errFlag = 0;
 		if (topLeftCorner.x > bottomRightCorner.x || topLeftCorner.y > bottomRightCorner.y || topLeftCorner.x < 0 || topLeftCorner.y < 0 || bottomRightCorner.x > myW || bottomRightCorner.y > myH) {
 			printf("Error : invalid values passed as table size, cannot continue\n");
 			errFlag = 1;
@@ -130,7 +132,7 @@ int main(int argc, char **argv) {
 			printf("invalid number of argument, continuing with default values\n");
 		}
 
-	//Once program arguments registered, initializing other useful variables
+	//Once program arguments registered, initializing useful variables to spot the balls
 	int redScore=0,yellowScore=0,whiteScore=0, testScore=0;
 	int pixelIndex=0;
 	struct vect redPosition={0,0}, yellowPosition={0,0}, whitePosition={0,0};
@@ -196,13 +198,41 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	int errFlag;
 	if (!highScoringRed) {
-		printf("Error : Red ball is too small\n");
+		printf("Error : Red ball is too small or inexistant\n");
 		errFlag = 1;
 	}
 	if (rightRedBall - leftRedBall > 2*ballDiameter|| downRedBall - upRedBall > 2*ballDiameter) {
 		printf("Error : Multiple red balls\n");
+		errFlag = 1;
+	}
+	if (!highScoringYellow) {
+		printf("Error : Yellow ball is too small or inexistant\n");
+		errFlag = 1;
+	}
+	if (rightYellowBall - leftYellowBall > 2*ballDiameter|| downYellowBall - upYellowBall > 2*ballDiameter) {
+		printf("Error : Multiple Yellow balls\n");
+		errFlag = 1;
+	}
+	if (!highScoringWhite) {
+		printf("Error : White ball is too small or inexistant\n");
+		errFlag = 1;
+	}
+	if (rightWhiteBall - leftWhiteBall > 2*ballDiameter|| downWhiteBall - upWhiteBall > 2*ballDiameter) {
+		printf("Error : Multiple white balls\n");
+		errFlag = 1;
+	}
+
+	if ((redPosition.x-yellowPosition.x)*(redPosition.x-yellowPosition.x) + (redPosition.y-yellowPosition.y)*(redPosition.y-yellowPosition.y) < ballDiameter*ballDiameter) {
+		printf("Error : superposition of red and yellow ball\n");
+		errFlag = 1;
+	}
+	if ((redPosition.x-whitePosition.x)*(redPosition.x-whitePosition.x) + (redPosition.y-whitePosition.y)*(redPosition.y-whitePosition.y) < ballDiameter*ballDiameter) {
+		printf("Error : superposition of red and white ball\n");
+		errFlag = 1;
+	}
+	if ((whitePosition.x-yellowPosition.x)*(whitePosition.x-yellowPosition.x) + (whitePosition.y-yellowPosition.y)*(whitePosition.y-yellowPosition.y) < ballDiameter*ballDiameter) {
+		printf("Error : superposition of yellow and white ball\n");
 		errFlag = 1;
 	}
 
