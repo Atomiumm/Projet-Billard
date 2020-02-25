@@ -140,6 +140,7 @@ void CheckForBalls(){
 			if(Red.X < 0){
 				Red.X = Tiles[index].X;
 				Red.Y = Tiles[index].Y;
+				Red.Score = Tiles[index].Score;
 			}
 			else{
 				if(Red.X != Tiles[index].X || Red.Y != Tiles[index].Y) printf("Error : multiple red balls, continuing with x=%d and y=%d\n", Red.X, Red.Y);
@@ -153,6 +154,7 @@ void CheckForBalls(){
 			if(Yellow.X < 0){
 				Yellow.X = Tiles[index].X;
 				Yellow.Y = Tiles[index].Y;
+				Yellow.Score = Tiles[index].Score;
 			}
 			else{
 				if(Yellow.X != Tiles[index].X || Yellow.Y != Tiles[index].Y) printf("Error : multiple yellow balls, continuing with x=%d and y=%d\n", Yellow.X, Yellow.Y);
@@ -166,6 +168,7 @@ void CheckForBalls(){
 			if(White.X < 0){
 				White.X = Tiles[index].X;
 				White.Y = Tiles[index].Y;
+				White.Score = Tiles[index].Score;
 			}
 			else{
 				if(White.X != Tiles[index].X || White.Y != Tiles[index].Y) printf("Error : multiple white balls, continuing with x=%d and y=%d\n", White.X, White.Y);
@@ -326,8 +329,11 @@ int main(int argc, char **argv) {
 	TileAmount.X = (TableMax.X-TableMin.X) / BallDiameter + ((TableMax.X-TableMin.X) % BallDiameter == 0 ? 0: 1);
 	TileAmount.Y = (TableMax.Y-TableMin.Y) / BallDiameter + ((TableMax.Y-TableMin.Y) % BallDiameter == 0 ? 0: 1);
 	Tiles = (struct coordinate *) malloc(TileAmount.X * TileAmount.Y);
-
+	
 	CheckForBalls();
+
+	free(Tiles);
+
 
 
 
@@ -339,7 +345,16 @@ int main(int argc, char **argv) {
 	if(White.X < 0) printf("Error : white ball missing\n");
 	else printf("White: %d, %d, %d\n", White.X, White.Y, White.Score);
 
-	free(Tiles);
+
+
+
+	PosTxt = fopen("Pos.txt", "w");
+	fprintf(PosTxt, "Red:%d,%d,%d\nYellow:%d,%d,%d\nWhite:%d,%d,%d\n", Red.X, Red.Y, Red.Score, Yellow.X, Yellow.Y, Yellow.Score, White.X, White.Y, White.Score);
+	fclose(PosTxt);
+
+
+
+
 
 	return 0;
 }

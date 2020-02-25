@@ -3,3 +3,6 @@ Pix2Pos2.exe
 test_atoi.c
 test_atoi.exe
 BinGenerator.exe
+Pixmap.bin
+PM.h
+Pos.txt
