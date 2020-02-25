@@ -19,9 +19,9 @@ struct coordinate {
 
 
 /* Global Variables */
-	struct coordinate Red = {0, 0, 0};
-	struct coordinate Yellow = {0, 0, 0};
-	struct coordinate White = {0, 0, 0};
+	struct coordinate Red = {-1, -1, -1};
+	struct coordinate Yellow = {-1, -1, -1};
+	struct coordinate White = {-1, -1, -1};
 	
 	short signed int BallDiameter = 11;
 	struct coordinate TableMin = {15, 15, 0};
@@ -131,14 +131,50 @@ void Converge(struct colour RangeMin, struct colour RangeMax){
 	}
 }
 
-void CheckForBalls(/*struct coordinate Coordinates*/){
-	
+void CheckForBalls(){
 	MapTile();
 	Converge(RBallMin, RBallMax);
 	for(int index = 0; index < TileAmount.X * TileAmount.Y; index++){
-		printf("%d:%d:%d\n", Tiles[index].X, Tiles[index].Y, Tiles[index].Score);
+		if(Tiles[index].Score){
+			if(Red.X < 0){
+				Red.X = Tiles[index].X;
+				Red.Y = Tiles[index].Y;
+			}
+			else{
+				if(Red.X != Tiles[index].X || Red.Y != Tiles[index].Y) printf("Error : multiple red balls, continuing with x=%d and y=%d\n", Red.X, Red.Y);
+			}
+		}
 	}
-	
+	MapTile();
+	Converge(YBallMin, YBallMax);
+	for(int index = 0; index < TileAmount.X * TileAmount.Y; index++){
+		if(Tiles[index].Score){
+			if(Yellow.X < 0){
+				Yellow.X = Tiles[index].X;
+				Yellow.Y = Tiles[index].Y;
+			}
+			else{
+				if(Yellow.X != Tiles[index].X || Yellow.Y != Tiles[index].Y) printf("Error : multiple yellow balls, continuing with x=%d and y=%d\n", Yellow.X, Yellow.Y);
+			}
+		}
+	}
+	MapTile();
+	Converge(WBallMin, WBallMax);
+	for(int index = 0; index < TileAmount.X * TileAmount.Y; index++){
+		if(Tiles[index].Score){
+			if(White.X < 0){
+				White.X = Tiles[index].X;
+				White.Y = Tiles[index].Y;
+			}
+			else{
+				if(White.X != Tiles[index].X || White.Y != Tiles[index].Y) printf("Error : multiple white balls, continuing with x=%d and y=%d\n", White.X, White.Y);
+			}
+		}
+	}
+
+	//if(Red.X + 11 > Yellow.X || Red.X < Yellow.X + 11 || Red.Y + 11 > Yellow.Y || Red.Y < Yellow.Y + 11) printf("Error : yellow and red ball overlapping\n");
+	//if(Red.X + 11 > White.X || Red.X < White.X + 11 || Red.Y + 11 > White.Y || Red.Y < White.Y + 11) printf("Error : white and red ball overlapping\n");
+	//if(White.X + 11 > Yellow.X || White.X < Yellow.X + 11 || White.Y + 11 > Yellow.Y || White.Y < Yellow.Y + 11) printf("Error : yellow and white ball overlapping\n");
 }
 
 void FindTable(){
@@ -239,7 +275,19 @@ int main(int argc, char **argv) {
 	if(TableMax.X - TableMin.X < BallDiameter || TableMax.Y - TableMin.Y < BallDiameter){
 		printf("Error : invalid values passed as table and ball size, ball is bigger than table, cannot continue\n");
 		flag = 1;
-	}	
+	}
+	if(myW < 10 || myH < 10 || myW > 1000 || myH > 1000){
+		printf("Error : invalid values passed as image size, cannot continue\n");
+		flag = 1;
+	}
+	if(BallDiameter < 5 || BallDiameter > 20){
+		printf("Error : invalid values passed as image size, cannot continue\n");
+		flag = 1;
+	}
+	if(sizeof(myPM)/sizeof(int) < myH*myW){
+		printf("Error : invalid values passed as image size, cannot continue\n");
+		flag = 1;
+	}
 	if(flag) return 0;
 
 
@@ -255,24 +303,17 @@ int main(int argc, char **argv) {
 	TileAmount.Y = (TableMax.Y-TableMin.Y) / BallDiameter + ((TableMax.Y-TableMin.Y) % BallDiameter == 0 ? 0: 1);
 	Tiles = (struct coordinate *) malloc(TileAmount.X * TileAmount.Y);
 
-
-
 	CheckForBalls();
 
-	//for(int x = TableMin.X; x <= TableMax.X - BallDiameter; x++){
-	//	for(int y = TableMin.Y; y <= TableMax.Y - BallDiameter; y++){
-	//		struct coordinate PixelCoords = {x, y, 0};
-	//		CheckForBalls(PixelCoords);
-	//	}
-	//}
 
 
 
-
-
-	printf("Red: %d, %d, %d\n", Red.X, Red.Y, Red.Score);
-	printf("Yellow: %d, %d, %d\n", Yellow.X, Yellow.Y, Yellow.Score);
-	printf("White: %d, %d, %d\n", White.X, White.Y, White.Score);
+	if(Red.X < 0) printf("Error : red ball missing\n");
+	else printf("Red: %d, %d, %d\n", Red.X, Red.Y, Red.Score);
+	if(Yellow.X < 0) printf("Error : yellow ball missing\n");
+	else printf("Yellow: %d, %d, %d\n", Yellow.X, Yellow.Y, Yellow.Score);
+	if(White.X < 0) printf("Error : white ball missing\n");
+	else printf("White: %d, %d, %d\n", White.X, White.Y, White.Score);
 
 	return 0;
 }
