@@ -42,6 +42,11 @@ struct coordinate {
 	struct coordinate TileAmount;
 	struct coordinate *Tiles;
 
+	int PixelWidth = 0, PixelHeight = 0;
+	FILE *PixmapBin;
+	FILE *PosTxt;
+
+	unsigned int *PixelInt;
 
 /* Function definition */
 struct colour Int2Colour(int ColourInt) {
@@ -171,10 +176,6 @@ void CheckForBalls(){
 			}
 		}
 	}
-
-	//if(Red.X + 11 > Yellow.X || Red.X < Yellow.X + 11 || Red.Y + 11 > Yellow.Y || Red.Y < Yellow.Y + 11) printf("Error : yellow and red ball overlapping\n");
-	//if(Red.X + 11 > White.X || Red.X < White.X + 11 || Red.Y + 11 > White.Y || Red.Y < White.Y + 11) printf("Error : white and red ball overlapping\n");
-	//if(White.X + 11 > Yellow.X || White.X < Yellow.X + 11 || White.Y + 11 > Yellow.Y || White.Y < Yellow.Y + 11) printf("Error : yellow and white ball overlapping\n");
 }
 
 void FindTable(){
@@ -247,6 +248,7 @@ int main(int argc, char **argv) {
 		printf("Error : invalid number of argument, continuing with default values\n");
 	}
 
+
 	int flag = 0;
 	if(TableMin.X > TableMax.X || TableMin.Y > TableMax.Y || TableMin.X < 0 || TableMin.Y < 0){
 		printf("Error : invalid values passed as table size, cannot continue\n");
@@ -288,7 +290,33 @@ int main(int argc, char **argv) {
 		printf("Error : invalid values passed as image size, cannot continue\n");
 		flag = 1;
 	}
+
+	PixmapBin = fopen("Pixmap.bin", "r");
+	if(PixmapBin == NULL){
+		printf("Error : couldn't open Pixmap.bin");
+		return 0;
+	}
+	int len = 1;
+	for(char c = getc(PixmapBin); c != EOF; c = getc(PixmapBin)) 
+        if (c == '\n')
+            len = len + 1; 
+    PixelInt = (int *) malloc(len-2);
+	if(1 != fread(&PixelWidth, sizeof(unsigned int), 1, PixmapBin)){
+		printf("Error : couldn't read image width, cannot continue\n");
+		flag = 1;
+	}
+	if(1 != fread(&PixelHeight, sizeof(unsigned int), 1, PixmapBin)){
+		printf("Error : couldn't read image height, cannot continue\n");
+		flag = 1;
+	}
+
+    printf("%d, %d\n", PixelWidth, PixelHeight);
+
+	fclose(PixmapBin);
+
+
 	if(flag) return 0;
+
 
 
 
@@ -297,7 +325,6 @@ int main(int argc, char **argv) {
 	FindTable();
 	printf("TableMin: %d, %d, %d\n", TableMin.X, TableMin.Y, TableMin.Score);
 	printf("TableMax: %d, %d, %d\n", TableMax.X, TableMax.Y, TableMax.Score);
-
 
 	TileAmount.X = (TableMax.X-TableMin.X) / BallDiameter + ((TableMax.X-TableMin.X) % BallDiameter == 0 ? 0: 1);
 	TileAmount.Y = (TableMax.Y-TableMin.Y) / BallDiameter + ((TableMax.Y-TableMin.Y) % BallDiameter == 0 ? 0: 1);
@@ -314,6 +341,8 @@ int main(int argc, char **argv) {
 	else printf("Yellow: %d, %d, %d\n", Yellow.X, Yellow.Y, Yellow.Score);
 	if(White.X < 0) printf("Error : white ball missing\n");
 	else printf("White: %d, %d, %d\n", White.X, White.Y, White.Score);
+
+	free(Tiles);
 
 	return 0;
 }
