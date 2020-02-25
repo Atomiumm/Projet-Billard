@@ -34,6 +34,10 @@ struct coordinate {
 	struct colour WBallMax = {255, 255, 255};
 	struct colour BGMin = {39, 91, 202};
 	struct colour BGMax = {62, 116, 255};
+	//struct colour LimMin = {0, 0, 121};
+	//struct colour LimMax = {14, 42, 126};
+	struct colour LimMin = {0, 0, 121};
+	struct colour LimMax = {0, 54, 180};
 
 
 /* Function definition */
@@ -65,7 +69,7 @@ int GetScore(struct coordinate Coordinates, int DeltaX, int DeltaY, struct colou
 	return Score;
 }
 
-void Modify_Results(struct coordinate Coordinates){
+void CheckForBalls(struct coordinate Coordinates){
 	int scoreR = GetScore(Coordinates, BallDiameter, BallDiameter, RBallMin, RBallMax);
 	if(scoreR > Red.Score){
 		Red.X = Coordinates.X;
@@ -83,6 +87,37 @@ void Modify_Results(struct coordinate Coordinates){
 		White.X = Coordinates.X;
 		White.Y = Coordinates.Y;
 		White.Score = scoreW;
+	}
+}
+
+void FindTable(){
+	for(int y = 0; y < myH; y++){
+		struct coordinate Coordinates = {myW/2, y, 0};
+		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
+			TableMin.Y = y;
+			break;
+		}
+	}
+	for(int x = 0; x < myW; x++){
+		struct coordinate Coordinates = {x, myH/2, 0};
+		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
+			TableMin.X = x;
+			break;
+		}
+	}
+	for(int y = myH; y > 0; y--){
+		struct coordinate Coordinates = {myW/2, y, 0};
+		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
+			TableMax.Y = y+1;
+			break;
+		}
+	}
+	for(int x = myW; x > 0; x--){
+		struct coordinate Coordinates = {x, myH/2, 0};
+		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
+			TableMax.X = x+1;
+			break;
+		}
 	}
 }
 
@@ -157,12 +192,20 @@ int main(int argc, char **argv) {
 
 
 
+
+
+	FindTable();
+	printf("TableMin: %d, %d, %d\n", TableMin.X, TableMin.Y, TableMin.Score);
+	printf("TableMax: %d, %d, %d\n", TableMax.X, TableMax.Y, TableMax.Score);
+
 	for(int x = TableMin.X; x <= TableMax.X - BallDiameter; x++){
 		for(int y = TableMin.Y; y <= TableMax.Y - BallDiameter; y++){
 			struct coordinate PixelCoords = {x, y, 0};
-			Modify_Results(PixelCoords);
+			CheckForBalls(PixelCoords);
 		}
 	}
+
+
 
 
 
