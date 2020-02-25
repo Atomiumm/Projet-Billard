@@ -55,7 +55,7 @@ struct vect {
 struct color intToColor(int colorInteger); //Outputs a color structure based on an integer input
 
 //Calculates the number of pixels in a certain color range (score) in a given ballSize*ballSize square
-int getScore(int index /*Designate the top left corner of the square*/, struct color min, struct color max, int imageHeight, int imageWidth, int ballSize); 
+int getScore(unsigned int *pixMap, int index /*Designate the top left corner of the square*/, struct color min, struct color max, int imageHeight, int imageWidth, int ballSize); 
 
 //Main writing
 
@@ -68,6 +68,47 @@ int main(int argc, char **argv) {
 
 	//An error flag tracking various errors. Allow to check and warn for different errors before exiting the program
 	int errFlag = 0;
+
+	//extracting data from input file
+	unsigned int imageWidth;
+	unsigned int imageHeight;
+	unsigned int *pixMap;
+	unsigned int storeReturn;
+
+	FILE *binmap;
+	binmap = fopen("pixmap.bin","r");
+	if (binmap=='NULL') {
+		printf("Error : cannot access pixmap\n");
+		errFlag = 1;
+	}
+
+	storeReturn = fread(&imageWidth,sizeof(unsigned int),1,binmap);
+	if (storeReturn!=1) {
+		printf("Error : cannot read image width, cannot continue\n");
+		errFlag = 1;
+	}
+
+	storeReturn = fread(&imageHeight,sizeof(unsigned int),1,binmap);
+	if (storeReturn!=1) {
+		printf("Error : cannot read image height, cannot continue\n");
+		errFlag = 1;
+	}
+
+	if (errFlag) return 0; //end the program if an error as occured since errors in file reading prevents further advancement
+
+	pixMap = malloc(imageWidth*imageHeight);
+	if (pixMap=='NULL') {
+		printf("Error : cannot allocate space for the pixMap\n");
+		return 0; //instantly ends the program since this error will prevent any further advancement
+	}
+
+	storeReturn = fread(pixMap,3,imageWidth*imageHeight,binmap);
+	if (storeReturn!=imageWidth*imageHeight) {
+		printf("Error : cannot read pixel values\n");
+		return 0;
+	}
+
+	fclose(binmap); //can fclose return an error ?
 
 	//Storing the program arguments while testing their validity
 	if (argc==30) {
@@ -101,7 +142,7 @@ int main(int argc, char **argv) {
 		backGroundMax.blue  = atoi(argv[28]);
 		ballDiameter        = atoi(argv[29]);
 
-		if (topLeftCorner.x > bottomRightCorner.x || topLeftCorner.y > bottomRightCorner.y || topLeftCorner.x < 0 || topLeftCorner.y < 0 || bottomRightCorner.x > myW || bottomRightCorner.y > myH) {
+		if (topLeftCorner.x > bottomRightCorner.x || topLeftCorner.y > bottomRightCorner.y || topLeftCorner.x < 0 || topLeftCorner.y < 0 || bottomRightCorner.x > imageWidth || bottomRightCorner.y > imageHeight) {
 			printf("Error : invalid values passed as table size, cannot continue\n");
 			errFlag = 1;
 		}
@@ -130,11 +171,11 @@ int main(int argc, char **argv) {
 			errFlag = 1;
 		}
 
-		if (errFlag) return 0;
+	} else {
+		printf("invalid number of argument, continuing with default values\n");
+	}
 
-		} else {
-			printf("invalid number of argument, continuing with default values\n");
-		}
+	if (errFlag) return 0;
 
 	//Once program arguments registered, initializing useful variables to spot the balls
 	int redScore=0,yellowScore=0,whiteScore=0, testScore=0;
@@ -143,15 +184,15 @@ int main(int argc, char **argv) {
 
 	int scoreThreshold = 3*ballDiameter*ballDiameter/4;
 	int highScoringRed = 0, highScoringYellow = 0, highScoringWhite = 0;
-	int upRedBall = myH-1, downRedBall = 0, rightRedBall = 0, leftRedBall = myW-1, upYellowBall = myH-1, downYellowBall = 0, rightYellowBall = 0, leftYellowBall = myW-1, upWhiteBall = myH-1, downWhiteBall = 0, rightWhiteBall = 0, leftWhiteBall= myW-1;
+	int upRedBall = imageHeight-1, downRedBall = 0, rightRedBall = 0, leftRedBall = imageWidth-1, upYellowBall = imageHeight-1, downYellowBall = 0, rightYellowBall = 0, leftYellowBall = imageWidth-1, upWhiteBall = imageHeight-1, downWhiteBall = 0, rightWhiteBall = 0, leftWhiteBall= imageWidth-1;
 
 	//Scans the image within the limits of the billiard table to spot the highest score earning areas
 	for (int xPos=topLeftCorner.x;xPos<=bottomRightCorner.x-ballDiameter+1;xPos++) {
 		for (int yPos=topLeftCorner.y;yPos<=bottomRightCorner.y-ballDiameter+1;yPos++) {
 
-			pixelIndex = xPos + yPos*myW;
+			pixelIndex = xPos + yPos*imageWidth;
 
-			testScore = getScore(pixelIndex,redBallMin,redBallMax,myH,myW,ballDiameter);
+			testScore = getScore(pixMap, pixelIndex, redBallMin, redBallMax, imageHeight, imageWidth, ballDiameter);
 
 			if (testScore > redScore) {
 				redScore      = testScore;
@@ -167,7 +208,7 @@ int main(int argc, char **argv) {
 				if (yPos < upRedBall)    upRedBall    = yPos;
 			}
 
-			testScore = getScore(pixelIndex,yellowBallMin,yellowBallMax,myH,myW,ballDiameter);
+			testScore = getScore(pixMap, pixelIndex, yellowBallMin, yellowBallMax, imageHeight, imageWidth, ballDiameter);
 
 			if (testScore > yellowScore) {
 				yellowScore      = testScore;
@@ -183,7 +224,7 @@ int main(int argc, char **argv) {
 				if (yPos < upYellowBall)    upYellowBall    = yPos;
 			}
 
-			testScore = getScore(pixelIndex,whiteBallMin,whiteBallMax,myH,myW,ballDiameter);
+			testScore = getScore(pixMap, pixelIndex, whiteBallMin, whiteBallMax, imageHeight, imageWidth, ballDiameter);
 
 			if (testScore > whiteScore) {
 				whiteScore      = testScore;
@@ -255,7 +296,7 @@ struct color intToColor(int colorInteger) {
 	return colorOutput;
 }
 
-int getScore(int index, struct color minRange, struct color maxRange, int imageHeight, int imageWidth, int ballDiameter) {
+int getScore(unsigned int *pixMap, int index, struct color minRange, struct color maxRange, int imageHeight, int imageWidth, int ballDiameter) {
 
 	int score = 0;
 	struct color pixColor={0,0,0};
@@ -269,7 +310,7 @@ int getScore(int index, struct color minRange, struct color maxRange, int imageH
 	//Scanning the area of interest for pixels within the range, and incrementing the score for each valid pixel
 	for (int xPos = index % imageWidth ; xPos < index%imageWidth + ballDiameter ; xPos++) {
 		for (int yPos = index/imageWidth ; yPos < index/imageWidth + ballDiameter ; yPos++) {
-			pixColor = intToColor(myPM[xPos + yPos*imageWidth]);
+			pixColor = intToColor(pixMap[xPos + yPos*imageWidth]);
 			if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
 		}
 	}
