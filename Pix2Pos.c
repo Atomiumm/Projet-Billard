@@ -66,6 +66,9 @@ int main(int argc, char **argv) {
 	struct vect topLeftCorner={15,15}, bottomRightCorner={85,65};
 	struct color redBallMin = {160,0,0}, redBallMax = {255,160,160}, yellowBallMin = {140,140,0}, yellowBallMax = {255,255,175}, whiteBallMin = {100,100,100}, whiteBallMax = {255,255,255}, backGroundMin = {39,62,91}, backGroundMax = {116,202,255};
 
+	//An error flag tracking various errors. Allow to check and warn for different errors before exiting the program
+	int errFlag = 0;
+
 	//Storing the program arguments while testing their validity
 	if (argc==30) {
 		topLeftCorner.x     = atoi(argv[1]);
@@ -98,7 +101,6 @@ int main(int argc, char **argv) {
 		backGroundMax.blue  = atoi(argv[28]);
 		ballDiameter        = atoi(argv[29]);
 
-		int errFlag = 0;
 		if (topLeftCorner.x > bottomRightCorner.x || topLeftCorner.y > bottomRightCorner.y || topLeftCorner.x < 0 || topLeftCorner.y < 0 || bottomRightCorner.x > myW || bottomRightCorner.y > myH) {
 			printf("Error : invalid values passed as table size, cannot continue\n");
 			errFlag = 1;
@@ -119,6 +121,10 @@ int main(int argc, char **argv) {
 			printf("Error : invalid values passed as background colour range, cannot continue\n");
 			errFlag = 1;
 		}
+		if (ballDiameter < 5 || ballDiameter > 20) {
+			printf("Error : ball diameter outside legal bounds\n");
+			errFlag = 1;
+		}
 		if (ballDiameter > bottomRightCorner.x-topLeftCorner.x || ballDiameter > bottomRightCorner.y-topLeftCorner.y) {
 			printf("Error : ball is larger than table, cannot process\n");
 			errFlag = 1;
@@ -130,35 +136,111 @@ int main(int argc, char **argv) {
 			printf("invalid number of argument, continuing with default values\n");
 		}
 
-	//Once program arguments registered, initializing other useful variables
+	//Once program arguments registered, initializing useful variables to spot the balls
 	int redScore=0,yellowScore=0,whiteScore=0, testScore=0;
 	int pixelIndex=0;
 	struct vect redPosition={0,0}, yellowPosition={0,0}, whitePosition={0,0};
 
+	int scoreThreshold = 3*ballDiameter*ballDiameter/4;
+	int highScoringRed = 0, highScoringYellow = 0, highScoringWhite = 0;
+	int upRedBall = myH-1, downRedBall = 0, rightRedBall = 0, leftRedBall = myW-1, upYellowBall = myH-1, downYellowBall = 0, rightYellowBall = 0, leftYellowBall = myW-1, upWhiteBall = myH-1, downWhiteBall = 0, rightWhiteBall = 0, leftWhiteBall= myW-1;
+
 	//Scans the image within the limits of the billiard table to spot the highest score earning areas
 	for (int xPos=topLeftCorner.x;xPos<=bottomRightCorner.x-ballDiameter+1;xPos++) {
 		for (int yPos=topLeftCorner.y;yPos<=bottomRightCorner.y-ballDiameter+1;yPos++) {
+
 			pixelIndex = xPos + yPos*myW;
+
 			testScore = getScore(pixelIndex,redBallMin,redBallMax,myH,myW,ballDiameter);
+
 			if (testScore > redScore) {
 				redScore      = testScore;
 				redPosition.x = xPos;
 				redPosition.y = yPos;
 			}
+
+			if (testScore >= scoreThreshold) {
+				highScoringRed++;
+				if (xPos > rightRedBall) rightRedBall = xPos;
+				if (xPos < leftRedBall)  leftRedBall  = xPos;
+				if (yPos > downRedBall)  downRedBall  = yPos;
+				if (yPos < upRedBall)    upRedBall    = yPos;
+			}
+
 			testScore = getScore(pixelIndex,yellowBallMin,yellowBallMax,myH,myW,ballDiameter);
+
 			if (testScore > yellowScore) {
 				yellowScore      = testScore;
 				yellowPosition.x = xPos;
 				yellowPosition.y = yPos;
 			}
+
+			if (testScore >= scoreThreshold) {
+				highScoringYellow++;
+				if (xPos > rightYellowBall) rightYellowBall = xPos;
+				if (xPos < leftYellowBall)  leftYellowBall  = xPos;
+				if (yPos > downYellowBall)  downYellowBall  = yPos;
+				if (yPos < upYellowBall)    upYellowBall    = yPos;
+			}
+
 			testScore = getScore(pixelIndex,whiteBallMin,whiteBallMax,myH,myW,ballDiameter);
+
 			if (testScore > whiteScore) {
 				whiteScore      = testScore;
 				whitePosition.x = xPos;
 				whitePosition.y = yPos;
 			}
+
+			if (testScore >= scoreThreshold) {
+				highScoringWhite++;
+				if (xPos > rightWhiteBall) rightWhiteBall = xPos;
+				if (xPos < leftWhiteBall)  leftWhiteBall  = xPos;
+				if (yPos > downWhiteBall)  downWhiteBall  = yPos;
+				if (yPos < upWhiteBall)    upWhiteBall    = yPos;
+			}
+
 		}
 	}
+
+	if (!highScoringRed) {
+		printf("Error : Red ball is too small or inexistant\n");
+		errFlag = 1;
+	}
+	if (rightRedBall - leftRedBall > 2*ballDiameter|| downRedBall - upRedBall > 2*ballDiameter) {
+		printf("Error : Multiple red balls\n");
+		errFlag = 1;
+	}
+	if (!highScoringYellow) {
+		printf("Error : Yellow ball is too small or inexistant\n");
+		errFlag = 1;
+	}
+	if (rightYellowBall - leftYellowBall > 2*ballDiameter|| downYellowBall - upYellowBall > 2*ballDiameter) {
+		printf("Error : Multiple Yellow balls\n");
+		errFlag = 1;
+	}
+	if (!highScoringWhite) {
+		printf("Error : White ball is too small or inexistant\n");
+		errFlag = 1;
+	}
+	if (rightWhiteBall - leftWhiteBall > 2*ballDiameter|| downWhiteBall - upWhiteBall > 2*ballDiameter) {
+		printf("Error : Multiple white balls\n");
+		errFlag = 1;
+	}
+
+	if ((redPosition.x-yellowPosition.x)*(redPosition.x-yellowPosition.x) + (redPosition.y-yellowPosition.y)*(redPosition.y-yellowPosition.y) < ballDiameter*ballDiameter) {
+		printf("Error : superposition of red and yellow ball\n");
+		errFlag = 1;
+	}
+	if ((redPosition.x-whitePosition.x)*(redPosition.x-whitePosition.x) + (redPosition.y-whitePosition.y)*(redPosition.y-whitePosition.y) < ballDiameter*ballDiameter) {
+		printf("Error : superposition of red and white ball\n");
+		errFlag = 1;
+	}
+	if ((whitePosition.x-yellowPosition.x)*(whitePosition.x-yellowPosition.x) + (whitePosition.y-yellowPosition.y)*(whitePosition.y-yellowPosition.y) < ballDiameter*ballDiameter) {
+		printf("Error : superposition of yellow and white ball\n");
+		errFlag = 1;
+	}
+
+	if (errFlag) return 0;
 
 	printf("Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d\n",redPosition.x,redPosition.y,redScore,yellowPosition.x,yellowPosition.y,yellowScore,whitePosition.x,whitePosition.y,whiteScore);
 }
