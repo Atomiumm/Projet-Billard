@@ -47,6 +47,8 @@ struct coordinate {
 
 	unsigned int *PixelInt;
 
+	short int ErrorFlag = 0;
+
 /* Function definition */
 struct colour Int2Colour(int ColourInt) {
 	struct colour ColourRGB;
@@ -143,7 +145,10 @@ void CheckForBalls(){
 				Red.Score = Tiles[index].Score;
 			}
 			else{
-				if(Red.X != Tiles[index].X || Red.Y != Tiles[index].Y) printf("Error : multiple red balls, continuing with x=%d and y=%d\n", Red.X, Red.Y);
+				if(Red.X != Tiles[index].X || Red.Y != Tiles[index].Y){
+					printf("Error : multiple red balls, continuing with x=%d and y=%d\n", Red.X, Red.Y);
+					exit(0);
+				}
 			}
 		}
 	}
@@ -157,7 +162,10 @@ void CheckForBalls(){
 				Yellow.Score = Tiles[index].Score;
 			}
 			else{
-				if(Yellow.X != Tiles[index].X || Yellow.Y != Tiles[index].Y) printf("Error : multiple yellow balls, continuing with x=%d and y=%d\n", Yellow.X, Yellow.Y);
+				if(Yellow.X != Tiles[index].X || Yellow.Y != Tiles[index].Y){
+					printf("Error : multiple yellow balls, cannot continue\n");
+					exit(0);
+				}
 			}
 		}
 	}
@@ -171,40 +179,68 @@ void CheckForBalls(){
 				White.Score = Tiles[index].Score;
 			}
 			else{
-				if(White.X != Tiles[index].X || White.Y != Tiles[index].Y) printf("Error : multiple white balls, continuing with x=%d and y=%d\n", White.X, White.Y);
+				if(White.X != Tiles[index].X || White.Y != Tiles[index].Y){
+					printf("Error : multiple white balls, cannot continue\n");
+					exit(0);
+				}
 			}
 		}
 	}
+	if((Red.X + 11 > Yellow.X && Red.X - 11 < Yellow.X) && (Red.Y + 11 > Yellow.Y && Red.Y - 11 < Yellow.Y)){
+		printf("Error : red ball and yellow ball overlapping, cannot continue\n");
+		ErrorFlag = 1;
+	}
+	if((Red.X + 11 > White.X && Red.X - 11 < White.X) && (Red.Y + 11 > White.Y && Red.Y - 11 < White.Y)){
+		printf("Error : red ball and white ball overlapping, cannot continue\n");
+		ErrorFlag = 1;
+	}
+	if((White.X + 11 > Yellow.X && White.X - 11 < Yellow.X) && (White.Y + 11 > Yellow.Y && White.Y - 11 < Yellow.Y)){
+		printf("Error : white ball and yellow ball overlapping, cannot continue\n");
+		ErrorFlag = 1;
+	}
+	if(ErrorFlag) exit(0);
 }
 
 void FindTable(){
 	for(int y = 0; y < PixelHeight; y++){
+		ErrorFlag = 1;
 		struct coordinate Coordinates = {PixelWidth/2, y, 0};
 		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
 			TableMin.Y = y;
+			ErrorFlag = 0;
 			break;
 		}
 	}
 	for(int x = 0; x < PixelWidth; x++){
+		ErrorFlag = 1;
 		struct coordinate Coordinates = {x, PixelHeight/2, 0};
 		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
 			TableMin.X = x;
+			ErrorFlag = 0;
 			break;
 		}
 	}
 	for(int y = PixelHeight; y > 0; y--){
+		ErrorFlag = 1;
 		struct coordinate Coordinates = {PixelWidth/2, y, 0};
 		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
 			TableMax.Y = y+1;
+			ErrorFlag = 0;
 			break;
 		}
 	}
 	for(int x = PixelWidth; x > 0; x--){
+		ErrorFlag = 1;
 		struct coordinate Coordinates = {x, PixelHeight/2, 0};
 		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
 			TableMax.X = x+1;
+			ErrorFlag = 0;
 			break;
 		}
+	}
+	if(ErrorFlag){
+		printf("Error : Table not found\n");
+		exit(0);
 	}
 }
 
@@ -244,47 +280,44 @@ int main(int argc, char **argv) {
 		BallDiameter = atoi(argv[29]);
 	}
 	else {
-		printf("Error : invalid number of argument, continuing with default values\n");
+		printf("Error : invalid number of argument, cannot continue\n");
+		//ErrorFlag = 1;
 	}
 
 
-	int flag = 0;
 	if(TableMin.X > TableMax.X || TableMin.Y > TableMax.Y || TableMin.X < 0 || TableMin.Y < 0){
 		printf("Error : invalid values passed as table size, cannot continue\n");
-		flag = 1;
+		ErrorFlag = 1;
 	}
 	if(RBallMin.R > RBallMax.R || RBallMin.G > RBallMax.G || RBallMin.B > RBallMax.B || RBallMin.R < 0 || RBallMin.G < 0 || RBallMin.B < 0){
 		printf("Error : invalid values passed as red ball colour range, cannot continue\n");
-		flag = 1;
+		ErrorFlag = 1;
 	}
 	if(YBallMin.R > YBallMax.R || YBallMin.G > YBallMax.G || YBallMin.B > YBallMax.B || YBallMin.R < 0 || YBallMin.G < 0 || YBallMin.B < 0){
 		printf("Error : invalid values passed as yellow ball colour range, cannot continue\n");
-		flag = 1;
+		ErrorFlag = 1;
 	}
 	if(WBallMin.R > WBallMax.R || WBallMin.G > WBallMax.G || WBallMin.B > WBallMax.B || WBallMin.R < 0 || WBallMin.G < 0 || WBallMin.B < 0){
 		printf("Error : invalid values passed as white ball colour range, cannot continue\n");
-		flag = 1;
+		ErrorFlag = 1;
 	}
 	if(BGMin.R > BGMax.R || BGMin.G > BGMax.G || BGMin.B > BGMax.B || BGMin.R < 0 || BGMin.G < 0 || BGMin.B < 0){
 		printf("Error : invalid values passed as background colour range, cannot continue\n");
-		flag = 1;
-	}
-	if(BallDiameter < 0){
-		printf("Error : invalid values passed as ball size, cannot continue\n");
-		flag = 1;
+		ErrorFlag = 1;
 	}
 	if(TableMax.X - TableMin.X < BallDiameter || TableMax.Y - TableMin.Y < BallDiameter){
 		printf("Error : invalid values passed as table and ball size, ball is bigger than table, cannot continue\n");
-		flag = 1;
+		ErrorFlag = 1;
 	}
 	if(BallDiameter < 5 || BallDiameter > 20){
-		printf("Error : invalid values passed as image size, cannot continue\n");
-		flag = 1;
+		printf("Error : invalid values passed as ball size, cannot continue\n");
+		ErrorFlag = 1;
 	}
 	if(sizeof(PixelInt)/sizeof(int) < PixelHeight*PixelWidth){
 		printf("Error : pixels are missing, cannot continue\n");
-		flag = 1;
+		ErrorFlag = 1;
 	}
+	if(ErrorFlag) return 0;
 
 	PixmapBin = fopen("Pixmap.bin", "r");
 	if(PixmapBin == NULL){
@@ -293,12 +326,18 @@ int main(int argc, char **argv) {
 	}
 	if(1 != fread(&PixelWidth, sizeof(unsigned int), 1, PixmapBin)){
 		printf("Error : couldn't read image width, cannot continue\n");
-		flag = 1;
+		ErrorFlag = 1;
 	}
 	if(1 != fread(&PixelHeight, sizeof(unsigned int), 1, PixmapBin)){
 		printf("Error : couldn't read image height, cannot continue\n");
-		flag = 1;
+		ErrorFlag = 1;
 	}
+	if(PixelWidth < 10 || PixelHeight < 10 || PixelWidth > 1000 || PixelHeight > 1000){
+		printf("Error : invalid values passed as image size, cannot continue\n");
+		ErrorFlag = 1;
+	}
+	if(ErrorFlag) return 0;
+
 	//printf("Image size: %d, %d\n", PixelWidth, PixelHeight);
 	PixelInt = malloc(sizeof(unsigned int)*PixelWidth*PixelHeight);
 	for(int index = 0; index < PixelWidth*PixelHeight; index += 1){
@@ -308,15 +347,9 @@ int main(int argc, char **argv) {
 			PixelInt[index] = -1;
 		}
 	}
-	if(PixelWidth < 10 || PixelHeight < 10 || PixelWidth > 1000 || PixelHeight > 1000){
-		printf("Error : invalid values passed as image size, cannot continue\n");
-		flag = 1;
-	}
+	
 
 	fclose(PixmapBin);
-
-	if(flag) return 0;
-
 
 
 
@@ -340,12 +373,22 @@ int main(int argc, char **argv) {
 
 
 
-	if(Red.X < 0) printf("Error : red ball missing\n");
+	if(Red.X < 0){
+		printf("Error : red ball missing\n");
+		ErrorFlag = 1;
+	}
 	//else printf("Red: %d, %d, %d\n", Red.X, Red.Y, Red.Score);
-	if(Yellow.X < 0) printf("Error : yellow ball missing\n");
+	if(Yellow.X < 0){
+		printf("Error : yellow ball missing\n");
+		ErrorFlag = 1;
+	}
 	//else printf("Yellow: %d, %d, %d\n", Yellow.X, Yellow.Y, Yellow.Score);
-	if(White.X < 0) printf("Error : white ball missing\n");
+	if(White.X < 0){
+		printf("Error : white ball missing\n");
+		ErrorFlag = 1;
+	}
 	//else printf("White: %d, %d, %d\n", White.X, White.Y, White.Score);
+	if(ErrorFlag) return 0;
 
 
 
