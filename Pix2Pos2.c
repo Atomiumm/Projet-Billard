@@ -299,7 +299,7 @@ int main(int argc, char **argv) {
 		printf("Error : couldn't read image height, cannot continue\n");
 		flag = 1;
 	}
-	printf("Image size: %d, %d\n", PixelWidth, PixelHeight);
+	//printf("Image size: %d, %d\n", PixelWidth, PixelHeight);
 	PixelInt = malloc(sizeof(unsigned int)*PixelWidth*PixelHeight);
 	for(int index = 0; index < PixelWidth*PixelHeight; index += 1){
 		int temp = fread((PixelInt+index), sizeof(unsigned int), 1, PixmapBin);
@@ -323,27 +323,29 @@ int main(int argc, char **argv) {
 
 
 	FindTable();
-	printf("TableMin: %d, %d, %d\n", TableMin.X, TableMin.Y, TableMin.Score);
-	printf("TableMax: %d, %d, %d\n", TableMax.X, TableMax.Y, TableMax.Score);
+	//printf("TableMin: %d, %d, %d\n", TableMin.X, TableMin.Y, TableMin.Score);
+	//printf("TableMax: %d, %d, %d\n", TableMax.X, TableMax.Y, TableMax.Score);
+	printf("Table found\n");
 
 	TileAmount.X = (TableMax.X-TableMin.X) / BallDiameter + ((TableMax.X-TableMin.X) % BallDiameter == 0 ? 0: 1);
 	TileAmount.Y = (TableMax.Y-TableMin.Y) / BallDiameter + ((TableMax.Y-TableMin.Y) % BallDiameter == 0 ? 0: 1);
 	Tiles = (struct coordinate *) malloc(TileAmount.X * TileAmount.Y);
-	
+
 	CheckForBalls();
 
 	free(Tiles);
+	printf("Balls found\n");
 
 
 
 
 
 	if(Red.X < 0) printf("Error : red ball missing\n");
-	else printf("Red: %d, %d, %d\n", Red.X, Red.Y, Red.Score);
+	//else printf("Red: %d, %d, %d\n", Red.X, Red.Y, Red.Score);
 	if(Yellow.X < 0) printf("Error : yellow ball missing\n");
-	else printf("Yellow: %d, %d, %d\n", Yellow.X, Yellow.Y, Yellow.Score);
+	//else printf("Yellow: %d, %d, %d\n", Yellow.X, Yellow.Y, Yellow.Score);
 	if(White.X < 0) printf("Error : white ball missing\n");
-	else printf("White: %d, %d, %d\n", White.X, White.Y, White.Score);
+	//else printf("White: %d, %d, %d\n", White.X, White.Y, White.Score);
 
 
 
@@ -355,7 +357,7 @@ int main(int argc, char **argv) {
 
 
 
-
+	printf("Program executed\n");
 	return 0;
 }
 
