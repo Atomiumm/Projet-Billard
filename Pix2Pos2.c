@@ -39,6 +39,9 @@ struct coordinate {
 	struct colour LimMin = {0, 0, 121};
 	struct colour LimMax = {0, 54, 180};
 
+	struct coordinate TileAmount;
+	struct coordinate *Tiles;
+
 
 /* Function definition */
 struct colour Int2Colour(int ColourInt) {
@@ -69,25 +72,73 @@ int GetScore(struct coordinate Coordinates, int DeltaX, int DeltaY, struct colou
 	return Score;
 }
 
-void CheckForBalls(struct coordinate Coordinates){
-	int scoreR = GetScore(Coordinates, BallDiameter, BallDiameter, RBallMin, RBallMax);
-	if(scoreR > Red.Score){
-		Red.X = Coordinates.X;
-		Red.Y = Coordinates.Y;
-		Red.Score = scoreR;
+void MapTile(){
+	for(int TileY = 0; TileY - TileAmount.Y; TileY++){
+		for(int TileX = 0; TileX - TileAmount.X; TileX++){
+			int index = TileY*TileAmount.X + TileX;
+			int x = TableMin.X + TileX*BallDiameter;
+			if(x+BallDiameter > TableMax.X) x -= x + BallDiameter - TableMax.X;
+			int y = TableMin.Y + TileY*BallDiameter;
+			if(y+BallDiameter > TableMax.Y) y -= y + BallDiameter - TableMax.Y;
+			Tiles[index].X = x;
+			Tiles[index].Y = y;
+		}
 	}
-	int scoreY = GetScore(Coordinates, BallDiameter, BallDiameter, YBallMin, YBallMax);
-	if(scoreY > Yellow.Score){
-		Yellow.X = Coordinates.X;
-		Yellow.Y = Coordinates.Y;
-		Yellow.Score = scoreY;
+}
+  
+void Converge(struct colour RangeMin, struct colour RangeMax){
+	for(int index = 0; index < TileAmount.X * TileAmount.Y; index++){
+		Tiles[index].Score = GetScore(Tiles[index], BallDiameter, BallDiameter, RangeMin, RangeMax);
 	}
-	int scoreW = GetScore(Coordinates, BallDiameter, BallDiameter, WBallMin, WBallMax);
-	if(scoreW > White.Score){
-		White.X = Coordinates.X;
-		White.Y = Coordinates.Y;
-		White.Score = scoreW;
+	int flag = 1;
+	while(flag){
+		flag = 0;
+		for(int index = 0; index < TileAmount.X * TileAmount.Y; index++){
+			if(Tiles[index].Score){
+				Tiles[index].Y++;
+				int up = GetScore(Tiles[index], BallDiameter, BallDiameter, RangeMin, RangeMax);
+				Tiles[index].Y -= 2;
+				int down = GetScore(Tiles[index], BallDiameter, BallDiameter, RangeMin, RangeMax);
+				Tiles[index].Y++;
+				Tiles[index].X++;
+				int right = GetScore(Tiles[index], BallDiameter, BallDiameter, RangeMin, RangeMax);
+				Tiles[index].X -= 2;
+				int left = GetScore(Tiles[index], BallDiameter, BallDiameter, RangeMin, RangeMax);
+				Tiles[index].X++;
+
+				if(up > Tiles[index].Score){
+					Tiles[index].Y++;
+					Tiles[index].Score = up;
+					flag = 1;
+				}
+				if(down > Tiles[index].Score){
+					Tiles[index].Y--;
+					Tiles[index].Score = down;
+					flag = 1;
+				}
+				if(right > Tiles[index].Score){
+					Tiles[index].X++;
+					Tiles[index].Score = right;
+					flag = 1;
+				}
+				if(left > Tiles[index].Score){
+					Tiles[index].X--;
+					Tiles[index].Score = left;
+					flag = 1;
+				}
+			}
+		}
 	}
+}
+
+void CheckForBalls(/*struct coordinate Coordinates*/){
+	
+	MapTile();
+	Converge(RBallMin, RBallMax);
+	for(int index = 0; index < TileAmount.X * TileAmount.Y; index++){
+		printf("%d:%d:%d\n", Tiles[index].X, Tiles[index].Y, Tiles[index].Score);
+	}
+	
 }
 
 void FindTable(){
@@ -183,6 +234,7 @@ int main(int argc, char **argv) {
 	}
 	if(BallDiameter < 0){
 		printf("Error : invalid values passed as ball size, cannot continue\n");
+		flag = 1;
 	}
 	if(TableMax.X - TableMin.X < BallDiameter || TableMax.Y - TableMin.Y < BallDiameter){
 		printf("Error : invalid values passed as table and ball size, ball is bigger than table, cannot continue\n");
@@ -198,12 +250,21 @@ int main(int argc, char **argv) {
 	printf("TableMin: %d, %d, %d\n", TableMin.X, TableMin.Y, TableMin.Score);
 	printf("TableMax: %d, %d, %d\n", TableMax.X, TableMax.Y, TableMax.Score);
 
-	for(int x = TableMin.X; x <= TableMax.X - BallDiameter; x++){
-		for(int y = TableMin.Y; y <= TableMax.Y - BallDiameter; y++){
-			struct coordinate PixelCoords = {x, y, 0};
-			CheckForBalls(PixelCoords);
-		}
-	}
+
+	TileAmount.X = (TableMax.X-TableMin.X) / BallDiameter + ((TableMax.X-TableMin.X) % BallDiameter == 0 ? 0: 1);
+	TileAmount.Y = (TableMax.Y-TableMin.Y) / BallDiameter + ((TableMax.Y-TableMin.Y) % BallDiameter == 0 ? 0: 1);
+	Tiles = (struct coordinate *) malloc(TileAmount.X * TileAmount.Y);
+
+
+
+	CheckForBalls();
+
+	//for(int x = TableMin.X; x <= TableMax.X - BallDiameter; x++){
+	//	for(int y = TableMin.Y; y <= TableMax.Y - BallDiameter; y++){
+	//		struct coordinate PixelCoords = {x, y, 0};
+	//		CheckForBalls(PixelCoords);
+	//	}
+	//}
 
 
 
@@ -212,7 +273,6 @@ int main(int argc, char **argv) {
 	printf("Red: %d, %d, %d\n", Red.X, Red.Y, Red.Score);
 	printf("Yellow: %d, %d, %d\n", Yellow.X, Yellow.Y, Yellow.Score);
 	printf("White: %d, %d, %d\n", White.X, White.Y, White.Score);
-
 
 	return 0;
 }
