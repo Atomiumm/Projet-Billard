@@ -394,6 +394,10 @@ int main(int argc, char **argv) {
 
 
 	PosTxt = fopen("Pos.txt", "w");
+	if(PosTxt == NULL){
+		printf("Error : couldn't open Pos.txt");
+		return 0;
+	}
 	fprintf(PosTxt, "Red:%d,%d,%d\nYellow:%d,%d,%d\nWhite:%d,%d,%d\n", Red.X, Red.Y, Red.Score, Yellow.X, Yellow.Y, Yellow.Score, White.X, White.Y, White.Score);
 	fclose(PosTxt);
 
