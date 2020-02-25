@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "PM.h"		//provisoire
 
 
 /* Structure definition */
@@ -69,8 +68,8 @@ int GetScore(struct coordinate Coordinates, int DeltaX, int DeltaY, struct colou
 	int Score = 0;
 	for(int x = Coordinates.X; x < Coordinates.X + DeltaX; x++){
 		for(int y = Coordinates.Y; y < Coordinates.Y + DeltaY; y++){
-			struct colour PixelColour = Int2Colour(myPM[x + y*myW]);
-			if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) printf("Error : colour error at pixel %d ignoring pixel\n", x + y*myW);
+			struct colour PixelColour = Int2Colour(PixelInt[x + y*PixelWidth]);
+			if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) printf("Error : colour error at pixel %d ignoring pixel\n", x + y*PixelWidth);
 			if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
 		}
 	}
@@ -92,9 +91,7 @@ void MapTile(){
 }
   
 void Converge(struct colour RangeMin, struct colour RangeMax){
-	for(int index = 0; index < TileAmount.X * TileAmount.Y; index++){
-		Tiles[index].Score = GetScore(Tiles[index], BallDiameter, BallDiameter, RangeMin, RangeMax);
-	}
+	for(int index = 0; index < TileAmount.X * TileAmount.Y; index++) Tiles[index].Score = GetScore(Tiles[index], BallDiameter, BallDiameter, RangeMin, RangeMax);
 	int flag = 1;
 	while(flag){
 		flag = 0;
@@ -110,7 +107,6 @@ void Converge(struct colour RangeMin, struct colour RangeMax){
 				Tiles[index].X -= 2;
 				int left = GetScore(Tiles[index], BallDiameter, BallDiameter, RangeMin, RangeMax);
 				Tiles[index].X++;
-
 				if(up > Tiles[index].Score){
 					Tiles[index].Y++;
 					Tiles[index].Score = up;
@@ -179,29 +175,29 @@ void CheckForBalls(){
 }
 
 void FindTable(){
-	for(int y = 0; y < myH; y++){
-		struct coordinate Coordinates = {myW/2, y, 0};
+	for(int y = 0; y < PixelHeight; y++){
+		struct coordinate Coordinates = {PixelWidth/2, y, 0};
 		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
 			TableMin.Y = y;
 			break;
 		}
 	}
-	for(int x = 0; x < myW; x++){
-		struct coordinate Coordinates = {x, myH/2, 0};
+	for(int x = 0; x < PixelWidth; x++){
+		struct coordinate Coordinates = {x, PixelHeight/2, 0};
 		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
 			TableMin.X = x;
 			break;
 		}
 	}
-	for(int y = myH; y > 0; y--){
-		struct coordinate Coordinates = {myW/2, y, 0};
+	for(int y = PixelHeight; y > 0; y--){
+		struct coordinate Coordinates = {PixelWidth/2, y, 0};
 		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
 			TableMax.Y = y+1;
 			break;
 		}
 	}
-	for(int x = myW; x > 0; x--){
-		struct coordinate Coordinates = {x, myH/2, 0};
+	for(int x = PixelWidth; x > 0; x--){
+		struct coordinate Coordinates = {x, PixelHeight/2, 0};
 		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
 			TableMax.X = x+1;
 			break;
@@ -278,16 +274,12 @@ int main(int argc, char **argv) {
 		printf("Error : invalid values passed as table and ball size, ball is bigger than table, cannot continue\n");
 		flag = 1;
 	}
-	if(myW < 10 || myH < 10 || myW > 1000 || myH > 1000){
-		printf("Error : invalid values passed as image size, cannot continue\n");
-		flag = 1;
-	}
 	if(BallDiameter < 5 || BallDiameter > 20){
 		printf("Error : invalid values passed as image size, cannot continue\n");
 		flag = 1;
 	}
-	if(sizeof(myPM)/sizeof(int) < myH*myW){
-		printf("Error : invalid values passed as image size, cannot continue\n");
+	if(sizeof(PixelInt)/sizeof(int) < PixelHeight*PixelWidth){
+		printf("Error : pixels are missing, cannot continue\n");
 		flag = 1;
 	}
 
@@ -304,12 +296,21 @@ int main(int argc, char **argv) {
 		printf("Error : couldn't read image height, cannot continue\n");
 		flag = 1;
 	}
-	
-
-    printf("%d, %d\n", PixelWidth, PixelHeight);
+	printf("Image size: %d, %d\n", PixelWidth, PixelHeight);
+	PixelInt = malloc(sizeof(unsigned int)*PixelWidth*PixelHeight);
+	for(int index = 0; index < PixelWidth*PixelHeight; index += 1){
+		int temp = fread((PixelInt+index), sizeof(unsigned int), 1, PixmapBin);
+		if(1 != temp){
+			printf("Error : couldn't read pixel %d, setting to -1\n", index);
+			PixelInt[index] = -1;
+		}
+	}
+	if(PixelWidth < 10 || PixelHeight < 10 || PixelWidth > 1000 || PixelHeight > 1000){
+		printf("Error : invalid values passed as image size, cannot continue\n");
+		flag = 1;
+	}
 
 	fclose(PixmapBin);
-
 
 	if(flag) return 0;
 

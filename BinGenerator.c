@@ -8,7 +8,7 @@ int main(){
 	BinFile = fopen("Pixmap.bin", "w");
 	fwrite(&myW, sizeof(unsigned int), 1, BinFile);
 	fwrite(&myH, sizeof(unsigned int), 1, BinFile);
-	fwrite(myPM, sizeof(unsigned int), myH*myW+2, BinFile);
+	printf("%d\n", fwrite(myPM, sizeof(unsigned int), myH*myW, BinFile));
 
 
 
