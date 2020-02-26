@@ -203,8 +203,8 @@ void CheckForBalls(){
 }
 
 void FindTable(){
+	ErrorFlag = 1;
 	for(int y = 0; y < PixelHeight; y++){
-		ErrorFlag = 1;
 		struct coordinate Coordinates = {PixelWidth/2, y, 0};
 		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
 			TableMin.Y = y;
@@ -212,8 +212,8 @@ void FindTable(){
 			break;
 		}
 	}
+	ErrorFlag = 1;
 	for(int x = 0; x < PixelWidth; x++){
-		ErrorFlag = 1;
 		struct coordinate Coordinates = {x, PixelHeight/2, 0};
 		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
 			TableMin.X = x;
@@ -221,8 +221,8 @@ void FindTable(){
 			break;
 		}
 	}
+	ErrorFlag = 1;
 	for(int y = PixelHeight; y > 0; y--){
-		ErrorFlag = 1;
 		struct coordinate Coordinates = {PixelWidth/2, y, 0};
 		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
 			TableMax.Y = y+1;
@@ -230,8 +230,8 @@ void FindTable(){
 			break;
 		}
 	}
+	ErrorFlag = 1;
 	for(int x = PixelWidth; x > 0; x--){
-		ErrorFlag = 1;
 		struct coordinate Coordinates = {x, PixelHeight/2, 0};
 		if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
 			TableMax.X = x+1;
