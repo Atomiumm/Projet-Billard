@@ -337,16 +337,14 @@ int main(int argc, char **argv) {
 
 	//printf("Image size: %d, %d\n", PixelWidth, PixelHeight);
 	PixelInt = malloc(sizeof(unsigned int)*PixelWidth*PixelHeight+1);
-	for(int index = 0; index <= PixelWidth*PixelHeight; index += 1){
-		int temp = fread((PixelInt+index), sizeof(unsigned int), 1, PixmapBin);
-		if(1 != temp && !(index == PixelWidth*PixelHeight)){
-			printf("Error : couldn't read pixel %d, cannot continue\n", index);
-			exit(0);
-		}
-		if(index == PixelWidth*PixelHeight && 1 == temp){
-			printf("Error : too many pixels, cannot continue\n");
-			exit(0);
-		}
+	int temp = fread(PixelInt, sizeof(unsigned int), PixelWidth*PixelHeight+1, PixmapBin);
+	if(temp < PixelWidth*PixelHeight){
+		printf("Error : not enough pixel, cannot continue\n");
+		return 0;
+	}
+	else if(temp > PixelWidth*PixelHeight){
+		printf("Error : too many pixels, cannot continue\n");
+		return 0;
 	}
 	
 
@@ -366,7 +364,7 @@ int main(int argc, char **argv) {
 	Tiles = (struct coordinate *) malloc(TileAmount.X * TileAmount.Y);
 
 	CheckForBalls();
-
+	
 	free(Tiles);
 	printf("Balls found\n");
 
