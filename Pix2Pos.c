@@ -5,6 +5,7 @@
 #define MAX_LEGAL_IMAGE_SIZE 1000
 #define MIN_LEGAL_BALL_SIZE 5
 #define MAX_LEGAL_BALL_SIZE 20
+#include <time.h>
 
 /*
 Le programme va lire le fichier Pixmap.bin contenant les pixels de l’image. 
@@ -63,6 +64,7 @@ int getScore(unsigned int *pixMap, int index /*Designate the top left corner of 
 //Main writing
 
 int main(int argc, char **argv) {
+	clock_t begin = clock();
 
 	//Initializing with a default value the variables that will store the program arguments
 	int ballDiameter=11;
@@ -193,10 +195,10 @@ int main(int argc, char **argv) {
 			errFlag = 1;
 		}
 
-	} else {
-		printf("Error : invalid number of arguments\n");
-		errFlag = 1;
-	}
+	} //else {
+	//	printf("Error : invalid number of arguments\n");
+	//	errFlag = 1;
+	//}
 
 	if (errFlag) {
 		free(pixMap);
@@ -334,6 +336,10 @@ int main(int argc, char **argv) {
 	fprintf(posFile,"Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d",redPosition.x,redPosition.y,redScore,yellowPosition.x,yellowPosition.y,yellowScore,whitePosition.x,whitePosition.y,whiteScore);
 
 	fclose(posFile);
+
+	clock_t end = clock();
+	double time_spent = (double)(end - begin) * 1000 / CLOCKS_PER_SEC;
+	printf("%lf milliseconds\n", time_spent);
 
 	return 0;
 }
