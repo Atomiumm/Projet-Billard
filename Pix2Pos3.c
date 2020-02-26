@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "PM.h"
 
 
 /* Structure definition */
@@ -32,12 +33,10 @@ struct coordinate {
 		struct colour YBallMax = {255, 255, 175};
 		struct colour WBallMin = {100, 100, 100};
 		struct colour WBallMax = {255, 255, 255};
-		struct colour BGMin = {39, 91, 202};
-		struct colour BGMax = {62, 116, 255};
-		//struct colour LimMin = {0, 0, 121};
-		//struct colour LimMax = {14, 42, 126};
-		struct colour LimMin = {0, 0, 121};
-		struct colour LimMax = {0, 54, 180};
+		//struct colour BGMin = {39, 91, 202};
+		//struct colour BGMax = {62, 116, 255};
+		struct colour BGMin = {0, 120, 200};
+		struct colour BGMax = {10, 130, 255};
 	/*Tiles*/
 		struct coordinate TileAmount;
 		struct coordinate *Tiles;
@@ -54,6 +53,17 @@ struct coordinate {
 
 
 /* Function definition */
+	/*Exits the program*/
+void Exit(int status){
+	printf("test\n");
+	free(Tiles);
+	printf("test\n");
+	free(PixelInt);
+	printf("test\n");
+	fclose(PosTxt);
+	printf("test\n");
+	exit(status);
+}
 	/*Converting a decimal colour to a RGB colour*/
 struct colour Int2Colour(int ColourInt) {
 	struct colour ColourRGB;
@@ -86,8 +96,8 @@ int GetScore(struct coordinate Coordinates, int DeltaX, int DeltaY, struct colou
 }
 	/*Tiles the map with tiles of size Balldiameter*/
 void MapTile(){
-	for(int TileY = 0; TileY - TileAmount.Y; TileY++){
-		for(int TileX = 0; TileX - TileAmount.X; TileX++){
+	for(int TileY = 0; TileY < TileAmount.Y; TileY++){
+		for(int TileX = 0; TileX < TileAmount.X; TileX++){
 			int index = TileY*TileAmount.X + TileX;
 			int x = TableMin.X + TileX*BallDiameter;
 			if(x+BallDiameter > TableMax.X) x -= x + BallDiameter - TableMax.X;
@@ -100,8 +110,8 @@ void MapTile(){
 }
 	/*Makes the tiles converge to the maximum score*/
 void Converge(struct colour RangeMin, struct colour RangeMax){
-	/*Calculating first score*/
-		for(int index = 0; index < TileAmount.X * TileAmount.Y; index++) Tiles[index].Score = GetScore(Tiles[index], BallDiameter, BallDiameter, RangeMin, RangeMax);
+	/*Calculating first score in a smaller 2*2 square*/
+		for(int index = 0; index < TileAmount.X * TileAmount.Y; index++) Tiles[index].Score = GetScore(Tiles[index], 2, 2, RangeMin, RangeMax);
 		//
 	/*Iterating through the tiles and move those who have a score to a place with bigger score*/
 		int flag = 1;
@@ -161,7 +171,7 @@ void CheckForBalls(){
 				else{
 					if(Red.X != Tiles[index].X || Red.Y != Tiles[index].Y){
 						printf("Error : multiple red balls, continuing with x=%d and y=%d\n", Red.X, Red.Y);
-						exit(0);
+						Exit(-1);
 					}
 				}
 			}
@@ -180,7 +190,7 @@ void CheckForBalls(){
 				else{
 					if(Yellow.X != Tiles[index].X || Yellow.Y != Tiles[index].Y){
 						printf("Error : multiple yellow balls, cannot continue\n");
-						exit(0);
+						Exit(-1);
 					}
 				}
 			}
@@ -199,11 +209,12 @@ void CheckForBalls(){
 				else{
 					if(White.X != Tiles[index].X || White.Y != Tiles[index].Y){
 						printf("Error : multiple white balls, cannot continue\n");
-						exit(0);
+						Exit(-1);
 					}
 				}
 			}
 		}
+		//printf("Red:%d,%d,%d\nYellow:%d,%d,%d\nWhite:%d,%d,%d\n", Red.X, Red.Y, Red.Score, Yellow.X, Yellow.Y, Yellow.Score, White.X, White.Y, White.Score);
 	/*Check if the balls are overlapping*/
 		if((Red.X + 11 > Yellow.X && Red.X - 11 < Yellow.X) && (Red.Y + 11 > Yellow.Y && Red.Y - 11 < Yellow.Y)){
 			printf("Error : red ball and yellow ball overlapping, cannot continue\n");
@@ -217,46 +228,46 @@ void CheckForBalls(){
 			printf("Error : white ball and yellow ball overlapping, cannot continue\n");
 			ErrorFlag = 1;
 		}
-		if(ErrorFlag) exit(0);
+		if(ErrorFlag) Exit(-1);
 }
 	/*Find the table*/
 void FindTable(){
 	/*Find the top*/
 		ErrorFlag = 1;
-		for(int y = 0; y < PixelHeight; y++){
+		for(int y = TableMin.Y; y < PixelHeight; y++){
 			struct coordinate Coordinates = {PixelWidth/2, y, 0};
-			if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
-				TableMin.Y = y;
+			if(GetScore(Coordinates, 1, 1, BGMin, BGMax)){
+				TableMin.Y = y-1;
 				ErrorFlag = 0;
 				break;
 			}
 		}
 	/*Find the left*/
 		ErrorFlag = 1;
-		for(int x = 0; x < PixelWidth; x++){
+		for(int x = TableMin.X; x < PixelWidth; x++){
 			struct coordinate Coordinates = {x, PixelHeight/2, 0};
-			if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
-				TableMin.X = x;
+			if(GetScore(Coordinates, 1, 1, BGMin, BGMax)){
+				TableMin.X = x-1;
 				ErrorFlag = 0;
 				break;
 			}
 		}
 	/*Find the bottom*/
 		ErrorFlag = 1;
-		for(int y = PixelHeight; y > 0; y--){
+		for(int y = TableMax.Y; y > 0; y--){
 			struct coordinate Coordinates = {PixelWidth/2, y, 0};
-			if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
-				TableMax.Y = y+1;
+			if(GetScore(Coordinates, 1, 1, BGMin, BGMax)){
+				TableMax.Y = y;
 				ErrorFlag = 0;
 				break;
 			}
 		}
 	/*Find the right*/
 		ErrorFlag = 1;
-		for(int x = PixelWidth; x > 0; x--){
+		for(int x = TableMax.X; x > 0; x--){
 			struct coordinate Coordinates = {x, PixelHeight/2, 0};
-			if(GetScore(Coordinates, 1, 1, LimMin, LimMax)){
-				TableMax.X = x+1;
+			if(GetScore(Coordinates, 1, 1, BGMin, BGMax)){
+				TableMax.X = x;
 				ErrorFlag = 0;
 				break;
 			}
@@ -264,12 +275,15 @@ void FindTable(){
 	/*Check if everything went fine*/
 		if(ErrorFlag){
 			printf("Error : Table not found\n");
-			exit(0);
+			Exit(-1);
 		}
 }
 
 
+/*Main*/
 int main(int argc, char **argv){
+	Tiles = malloc(1);
+	//PixelInt = malloc(1);
 /*read arguments*/
 	if(argc == 30){
 		TableMin.X   = atoi(argv[1]);
@@ -335,12 +349,12 @@ int main(int argc, char **argv){
 		printf("Error : invalid values passed as ball size, cannot continue\n");
 		ErrorFlag = 1;
 	}
-	if(ErrorFlag) return 0;
+	if(ErrorFlag) Exit(-1);
 /*Open Pixmap.bin and verify width and heigth*/
 	PixmapBin = fopen("Pixmap.bin", "r");
 	if(PixmapBin == NULL){
 		printf("Error : couldn't open Pixmap.bin");
-		return 0;
+		Exit(-1);
 	}
 	if(1 != fread(&PixelWidth, sizeof(unsigned int), 1, PixmapBin)){
 		printf("Error : couldn't read image width, cannot continue\n");
@@ -354,17 +368,18 @@ int main(int argc, char **argv){
 		printf("Error : invalid values passed as image size, cannot continue\n");
 		ErrorFlag = 1;
 	}
-	if(ErrorFlag) return 0;
+	if(ErrorFlag) Exit(-1);
 /*Read the pixels and close the file*/
-	PixelInt = malloc(sizeof(unsigned int)*PixelWidth*PixelHeight+1);
+	PixelInt = malloc(sizeof(unsigned int)*(PixelWidth*PixelHeight+1));
+	//realloc(PixelInt, sizeof(unsigned int)*(PixelWidth*PixelHeight+1));
 	int temp = fread(PixelInt, sizeof(unsigned int), PixelWidth*PixelHeight+1, PixmapBin);
 	if(temp < PixelWidth*PixelHeight){
 		printf("Error : not enough pixel, cannot continue\n");
-		return 0;
+		Exit(-1);
 	}
 	else if(temp > PixelWidth*PixelHeight){
 		printf("Error : too many pixels, cannot continue\n");
-		return 0;
+		Exit(-1);
 	}
 	fclose(PixmapBin);
 /*Find the table*/
@@ -373,12 +388,10 @@ int main(int argc, char **argv){
 /*create the tiles*/
 	TileAmount.X = (TableMax.X-TableMin.X) / BallDiameter + ((TableMax.X-TableMin.X) % BallDiameter == 0 ? 0: 1);
 	TileAmount.Y = (TableMax.Y-TableMin.Y) / BallDiameter + ((TableMax.Y-TableMin.Y) % BallDiameter == 0 ? 0: 1);
-	Tiles = (struct coordinate *) malloc(TileAmount.X * TileAmount.Y);
+	realloc(Tiles, sizeof(struct coordinate)*TileAmount.X * TileAmount.Y);
 /*find the balls*/
 	CheckForBalls();	//
 	printf("Balls found\n");
-	//free(Tiles);
-	//free(PixelInt);
 /*check if the balls are all here*/
 	if(Red.X < 0){
 		printf("Error : red ball missing\n");
@@ -392,18 +405,17 @@ int main(int argc, char **argv){
 		printf("Error : white ball missing\n");
 		ErrorFlag = 1;
 	}
-	if(ErrorFlag) return 0;
+	if(ErrorFlag) Exit(-1);
 /*open and write in Pos.txt*/
 	PosTxt = fopen("Pos.txt", "w");
 	if(PosTxt == NULL){
-		printf("Error : couldn't open Pos.txt");
-		return 0;
+		printf("Error : couldn't open Pos.txt\n");
+		Exit(-1);
 	}
 	fprintf(PosTxt, "Red:%d,%d,%d\nYellow:%d,%d,%d\nWhite:%d,%d,%d\n", Red.X, Red.Y, Red.Score, Yellow.X, Yellow.Y, Yellow.Score, White.X, White.Y, White.Score);
-	fclose(PosTxt);
 /**/
 	printf("Program executed\n");
-	return 0;
+	Exit(0);
 }
 
 
