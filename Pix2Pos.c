@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define MIN_LEGAL_IMAGE_SIZE 10
+#define MAX_LEGAL_IMAGE_SIZE 1000
+#define MIN_LEGAL_BALL_SIZE 5
+#define MAX_LEGAL_BALL_SIZE 20
 
 /*
 Le programme va lire le fichier Pixmap.bin contenant les pixels de l’image. 
@@ -54,7 +58,7 @@ struct vect {
 struct color intToColor(int colorInteger); //Outputs a color structure based on an integer input
 
 //Calculates the number of pixels in a certain color range (score) in a given ballSize*ballSize square
-int getScore(unsigned int *pixMap, int index /*Designate the top left corner of the square*/, struct color min, struct color max, int imageHeight, int imageWidth, int ballSize); 
+int getScore(unsigned int *pixMap, int index /*Designate the top left corner of the square*/, struct color minRange, struct color maxRange, int imageHeight, int imageWidth, int ballSize); 
 
 //Main writing
 
@@ -86,16 +90,24 @@ int main(int argc, char **argv) {
 		printf("Error : cannot read image width, cannot continue\n");
 		errFlag = 1;
 	}
+	if (imageWidth > MAX_LEGAL_IMAGE_SIZE || imageWidth < MIN_LEGAL_IMAGE_SIZE) {
+		printf("Error : image width illegal, should be comprised in the range %d:%d\n",MIN_LEGAL_IMAGE_SIZE,MAX_LEGAL_IMAGE_SIZE);
+		errFlag = 1;
+	}
 
 	storeReturn = fread(&imageHeight,sizeof(unsigned int),1,binmap);
 	if (storeReturn!=1) {
 		printf("Error : cannot read image height, cannot continue\n");
 		errFlag = 1;
 	}
+	if (imageHeight > MAX_LEGAL_IMAGE_SIZE || imageHeight < MIN_LEGAL_IMAGE_SIZE) {
+		printf("Error : image height illegal, should be comprised in the range %d:%d\n",MIN_LEGAL_IMAGE_SIZE,MAX_LEGAL_IMAGE_SIZE);
+		errFlag = 1;
+	}
 
 	if (errFlag) {
 		fclose(binmap);
-		return 0; //end the program if an error as occured since errors in file reading prevents further advancement
+		return -1; //end the program if an error as occured since errors in file reading prevents further advancement
 	}
 
 	pixMap = malloc(imageWidth*imageHeight*sizeof(unsigned int));
@@ -103,18 +115,22 @@ int main(int argc, char **argv) {
 		printf("Error : cannot allocate space for the pixMap\n");
 		free(pixMap);
 		fclose(binmap);
-		return 0; //instantly ends the program since this error will prevent any further advancement
+		return -1; //instantly ends the program since this error will prevent any further advancement
 	}
 
 	storeReturn = fread(pixMap,sizeof(unsigned int),imageWidth*imageHeight,binmap);
 	if (storeReturn!=imageWidth*imageHeight) {
-		printf("Error : cannot read pixel values\n");
+		printf("Error : cannot read pixel values, file may not contain enough data\n");
 		free(pixMap);
 		fclose(binmap);
-		return 0;
+		return -1;
 	}
 
-	fclose(binmap); //can fclose return an error ?
+	if (fread(&storeReturn,sizeof(unsigned int),1,binmap)==1) {
+		printf("Warning : more pixels than anticipated in file, results, if any, are to be interpreted with caution\n");
+	}
+
+	fclose(binmap);
 
 	//Storing the program arguments while testing their validity
 	if (argc==30) {
@@ -168,8 +184,8 @@ int main(int argc, char **argv) {
 			printf("Error : invalid values passed as background colour range, cannot continue\n");
 			errFlag = 1;
 		}
-		if (ballDiameter < 5 || ballDiameter > 20) {
-			printf("Error : ball diameter outside legal bounds\n");
+		if (ballDiameter < MIN_LEGAL_BALL_SIZE || ballDiameter > MAX_LEGAL_BALL_SIZE) {
+			printf("Error : ball diameter illegal, should be comprised in the range %d:%d\n",MIN_LEGAL_BALL_SIZE,MAX_LEGAL_BALL_SIZE);
 			errFlag = 1;
 		}
 		if (ballDiameter > bottomRightCorner.x-topLeftCorner.x || ballDiameter > bottomRightCorner.y-topLeftCorner.y) {
@@ -178,28 +194,38 @@ int main(int argc, char **argv) {
 		}
 
 	} else {
-		printf("invalid number of argument, continuing with default values\n");
+		printf("Error : invalid number of arguments\n");
+		errFlag = 1;
 	}
 
 	if (errFlag) {
 		free(pixMap);
-		return 0;
+		return -1;
 	}
 
 	//Once program arguments registered, initializing useful variables to spot the balls
 	int redScore=0,yellowScore=0,whiteScore=0, testScore=0;
 	int pixelIndex=0;
-	struct vect redPosition={0,0}, yellowPosition={0,0}, whitePosition={0,0};
+	int centerPoint=0;
+	struct color pixColor;
+	struct vect redPosition={-1,-1}, yellowPosition={-1,-1}, whitePosition={-1,-1};
 
+	//Initializing useful variables for error detections
 	int scoreThreshold = 3*ballDiameter*ballDiameter/4;
 	int highScoringRed = 0, highScoringYellow = 0, highScoringWhite = 0;
 	int upRedBall = imageHeight-1, downRedBall = 0, rightRedBall = 0, leftRedBall = imageWidth-1, upYellowBall = imageHeight-1, downYellowBall = 0, rightYellowBall = 0, leftYellowBall = imageWidth-1, upWhiteBall = imageHeight-1, downWhiteBall = 0, rightWhiteBall = 0, leftWhiteBall= imageWidth-1;
 
 	//Scans the image within the limits of the billiard table to spot the highest score earning areas
-	for (int xPos=topLeftCorner.x;xPos<=bottomRightCorner.x-ballDiameter+1;xPos++) {
-		for (int yPos=topLeftCorner.y;yPos<=bottomRightCorner.y-ballDiameter+1;yPos++) {
+	int xPos;
+	int yPos;
+	for (xPos=topLeftCorner.x;xPos<=bottomRightCorner.x-ballDiameter+1;xPos++) {
+		for (yPos=topLeftCorner.y;yPos<=bottomRightCorner.y-ballDiameter+1;yPos++) {
 
 			pixelIndex = xPos + yPos*imageWidth;
+
+			centerPoint = xPos + ballDiameter/2 + (yPos + ballDiameter/2)*imageWidth;
+			pixColor = intToColor(pixMap[centerPoint]);
+			if (pixColor.red >= backGroundMin.red && pixColor.red <= backGroundMax.red && pixColor.green >= backGroundMin.green && pixColor.green <= backGroundMax.green && pixColor.blue >= backGroundMin.blue && pixColor.blue <= backGroundMax.blue) continue;
 
 			testScore = getScore(pixMap, pixelIndex, redBallMin, redBallMax, imageHeight, imageWidth, ballDiameter);
 
@@ -253,7 +279,7 @@ int main(int argc, char **argv) {
 	}
 
 	if (!highScoringRed) {
-		printf("Error : Red ball is too small or inexistant\n");
+		printf("Error : Red ball is too small or nonexistant\n");
 		errFlag = 1;
 	}
 	if (rightRedBall - leftRedBall > 2*ballDiameter|| downRedBall - upRedBall > 2*ballDiameter) {
@@ -261,7 +287,7 @@ int main(int argc, char **argv) {
 		errFlag = 1;
 	}
 	if (!highScoringYellow) {
-		printf("Error : Yellow ball is too small or inexistant\n");
+		printf("Error : Yellow ball is too small or nonexistant\n");
 		errFlag = 1;
 	}
 	if (rightYellowBall - leftYellowBall > 2*ballDiameter|| downYellowBall - upYellowBall > 2*ballDiameter) {
@@ -269,7 +295,7 @@ int main(int argc, char **argv) {
 		errFlag = 1;
 	}
 	if (!highScoringWhite) {
-		printf("Error : White ball is too small or inexistant\n");
+		printf("Error : White ball is too small or nonexistant\n");
 		errFlag = 1;
 	}
 	if (rightWhiteBall - leftWhiteBall > 2*ballDiameter|| downWhiteBall - upWhiteBall > 2*ballDiameter) {
@@ -292,7 +318,7 @@ int main(int argc, char **argv) {
 
 	if (errFlag) {
 		free(pixMap);
-		return 0;
+		return -1;
 	}
 
 	free(pixMap);
@@ -302,10 +328,10 @@ int main(int argc, char **argv) {
 	if (posFile == NULL) {
 		printf("Error : cannot open Pos.txt\n");
 		fclose(posFile);
-		return 0;
+		return -1;
 	}
 
-	fprintf(posFile,"Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d\n",redPosition.x,redPosition.y,redScore,yellowPosition.x,yellowPosition.y,yellowScore,whitePosition.x,whitePosition.y,whiteScore);
+	fprintf(posFile,"Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d",redPosition.x,redPosition.y,redScore,yellowPosition.x,yellowPosition.y,yellowScore,whitePosition.x,whitePosition.y,whiteScore);
 
 	fclose(posFile);
 
