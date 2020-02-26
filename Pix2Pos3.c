@@ -377,9 +377,8 @@ int main(int argc, char **argv){
 /*find the balls*/
 	CheckForBalls();	//
 	printf("Balls found\n");
-	free(Tiles);
+	//free(Tiles);
 	//free(PixelInt);
-	free(Tiles);
 /*check if the balls are all here*/
 	if(Red.X < 0){
 		printf("Error : red ball missing\n");
