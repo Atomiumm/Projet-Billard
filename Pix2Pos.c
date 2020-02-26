@@ -195,10 +195,10 @@ int main(int argc, char **argv) {
 			errFlag = 1;
 		}
 
-	} //else {
-	//	printf("Error : invalid number of arguments\n");
-	//	errFlag = 1;
-	//}
+	} else {
+		printf("Error : invalid number of arguments\n");
+		errFlag = 1;
+	}
 
 	if (errFlag) {
 		free(pixMap);
