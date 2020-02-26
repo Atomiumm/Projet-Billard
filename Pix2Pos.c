@@ -295,9 +295,20 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
-	printf("Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d\n",redPosition.x,redPosition.y,redScore,yellowPosition.x,yellowPosition.y,yellowScore,whitePosition.x,whitePosition.y,whiteScore);
-
 	free(pixMap);
+
+	FILE *posFile;
+	posFile = fopen("Pos.txt","w");
+	if (posFile == NULL) {
+		printf("Error : cannot open Pos.txt\n");
+		fclose(posFile);
+		return 0;
+	}
+
+	fprintf(posFile,"Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d\n",redPosition.x,redPosition.y,redScore,yellowPosition.x,yellowPosition.y,yellowScore,whitePosition.x,whitePosition.y,whiteScore);
+
+	fclose(posFile);
+
 	return 0;
 }
 
