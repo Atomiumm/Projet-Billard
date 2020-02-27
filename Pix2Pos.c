@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #define MIN_LEGAL_IMAGE_SIZE 10
 #define MAX_LEGAL_IMAGE_SIZE 1000
 #define MIN_LEGAL_BALL_SIZE 5
 #define MAX_LEGAL_BALL_SIZE 20
-#include <time.h>
 
 /*
 Le programme va lire le fichier Pixmap.bin contenant les pixels de l’image. 
@@ -64,6 +64,8 @@ int getScore(unsigned int *pixMap, int index /*Designate the top left corner of 
 //Main writing
 
 int main(int argc, char **argv) {
+	clock_t begin = clock();
+
 	clock_t begin = clock();
 
 	//Initializing with a default value the variables that will store the program arguments
