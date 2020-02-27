@@ -1,2 +1,2 @@
-gcc Pix2Pos3.c -o Pix2Pos3
-Pix2Pos3.exe
+gcc Pix2Pos.c -o Pix2Pos.exe
+Pix2Pos.exe 15 85 15 65 160 255 0 160 0 160 140 255 140 255 0 175 100 255 100 255 100 255 10 100 10 100 10 100 11

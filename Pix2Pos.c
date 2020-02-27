@@ -51,6 +51,12 @@ struct vect {
 	int y;
 };
 
+struct vectPlus {
+	int x;
+	int y;
+	int score;
+};
+
 
 //Functions declaration
 
@@ -58,7 +64,9 @@ struct vect {
 struct color intToColor(int colorInteger); //Outputs a color structure based on an integer input
 
 //Calculates the number of pixels in a certain color range (score) in a given ballSize*ballSize square
-int getScore(unsigned int *pixMap, int index /*Designate the top left corner of the square*/, struct color minRange, struct color maxRange, int imageHeight, int imageWidth, int ballSize); 
+int getScore(unsigned int *pixMap, int index /*Designate the top left corner of the square*/, struct color minRange, struct color maxRange, int imageHeight, int imageWidth, int ballDiameter, char mode); 
+
+struct vectPlus convergence(unsigned int *pixMap, int index, struct color minRange, struct color maxRange, int imageHeight, int imageWidth, int ballDiameter);
 
 //Main writing
 
@@ -127,7 +135,7 @@ int main(int argc, char **argv) {
 	}
 
 	if (fread(&storeReturn,sizeof(unsigned int),1,binmap)==1) {
-		printf("Warning : more pixels than anticipated in file, results, if any, are to be interpreted with caution\n");
+		printf("Warning : more pixels availables than anticipated, results, if any, are to be interpreted with caution\n");
 	}
 
 	fclose(binmap);
@@ -203,80 +211,61 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-	//Once program arguments registered, initializing useful variables to spot the balls
-	int redScore=0,yellowScore=0,whiteScore=0, testScore=0;
-	int pixelIndex=0;
-	int centerPoint=0;
-	struct color pixColor;
-	struct vect redPosition={-1,-1}, yellowPosition={-1,-1}, whitePosition={-1,-1};
+	int crossScore;
+	int pixIndex;
+	struct vectPlus redPosition, yellowPosition, whitePosition;
+	int highScoringRed=0, highScoringYellow=0, highScoringWhite=0;
+	int rightRedBall=-1, leftRedBall=imageWidth, upRedBall=imageHeight, downRedBall=-1, rightYellowBall=-1, leftYellowBall=imageWidth, upYellowBall=imageHeight, downYellowBall=-1, rightWhiteBall=-1, leftWhiteBall=imageWidth, upWhiteBall=imageHeight, downWhiteBall=-1;
 
-	//Initializing useful variables for error detections
 	int scoreThreshold = 3*ballDiameter*ballDiameter/4;
-	int highScoringRed = 0, highScoringYellow = 0, highScoringWhite = 0;
-	int upRedBall = imageHeight-1, downRedBall = 0, rightRedBall = 0, leftRedBall = imageWidth-1, upYellowBall = imageHeight-1, downYellowBall = 0, rightYellowBall = 0, leftYellowBall = imageWidth-1, upWhiteBall = imageHeight-1, downWhiteBall = 0, rightWhiteBall = 0, leftWhiteBall= imageWidth-1;
 
-	//Scans the image within the limits of the billiard table to spot the highest score earning areas
-	int xPos;
-	int yPos;
-	for (xPos=topLeftCorner.x;xPos<=bottomRightCorner.x-ballDiameter+1;xPos++) {
-		for (yPos=topLeftCorner.y;yPos<=bottomRightCorner.y-ballDiameter+1;yPos++) {
+	int xPos = topLeftCorner.x + ballDiameter/2;
+	while (xPos < bottomRightCorner.x) {
+		int yPos = topLeftCorner.y + ballDiameter/2;
+		while (yPos < bottomRightCorner.y) {
 
-			pixelIndex = xPos + yPos*imageWidth;
-
-			centerPoint = xPos + ballDiameter/2 + (yPos + ballDiameter/2)*imageWidth;
-			pixColor = intToColor(pixMap[centerPoint]);
-			if (pixColor.red >= backGroundMin.red && pixColor.red <= backGroundMax.red && pixColor.green >= backGroundMin.green && pixColor.green <= backGroundMax.green && pixColor.blue >= backGroundMin.blue && pixColor.blue <= backGroundMax.blue) continue;
-
-			testScore = getScore(pixMap, pixelIndex, redBallMin, redBallMax, imageHeight, imageWidth, ballDiameter);
-
-			if (testScore > redScore) {
-				redScore      = testScore;
-				redPosition.x = xPos;
-				redPosition.y = yPos;
+			pixIndex = xPos+yPos*imageWidth;
+			crossScore = getScore(pixMap,pixIndex,redBallMin,redBallMax,imageHeight,imageWidth,ballDiameter,'c');
+			if (crossScore!=0) {
+				redPosition = convergence(pixMap,pixIndex,redBallMin,redBallMax,imageHeight,imageWidth,ballDiameter);
+				if (redPosition.score > scoreThreshold) {
+					highScoringRed++;
+					if (redPosition.x > rightRedBall) rightRedBall=redPosition.x;
+					if (redPosition.x < leftRedBall) leftRedBall=redPosition.x;
+					if (redPosition.y > downRedBall) downRedBall=redPosition.y;
+					if (redPosition.y < upRedBall) upRedBall=redPosition.y;
+				}
 			}
 
-			if (testScore >= scoreThreshold) {
-				highScoringRed++;
-				if (xPos > rightRedBall) rightRedBall = xPos;
-				if (xPos < leftRedBall)  leftRedBall  = xPos;
-				if (yPos > downRedBall)  downRedBall  = yPos;
-				if (yPos < upRedBall)    upRedBall    = yPos;
+			crossScore = getScore(pixMap,pixIndex,yellowBallMin,yellowBallMax,imageHeight,imageWidth,ballDiameter,'c');
+			if (crossScore!=0) {
+				yellowPosition = convergence(pixMap,pixIndex,yellowBallMin,yellowBallMax,imageHeight,imageWidth,ballDiameter);
+				if (yellowPosition.score > scoreThreshold) {
+					highScoringYellow++;
+					if (yellowPosition.x > rightYellowBall) rightYellowBall=yellowPosition.x;
+					if (yellowPosition.x < leftYellowBall) leftYellowBall=yellowPosition.x;
+					if (yellowPosition.y > downYellowBall) downYellowBall=yellowPosition.y;
+					if (yellowPosition.y < upYellowBall) upYellowBall=yellowPosition.y;
+				}
 			}
 
-			testScore = getScore(pixMap, pixelIndex, yellowBallMin, yellowBallMax, imageHeight, imageWidth, ballDiameter);
-
-			if (testScore > yellowScore) {
-				yellowScore      = testScore;
-				yellowPosition.x = xPos;
-				yellowPosition.y = yPos;
+			crossScore = getScore(pixMap,pixIndex,whiteBallMin,whiteBallMax,imageHeight,imageWidth,ballDiameter,'c');
+			if (crossScore!=0) {
+				whitePosition = convergence(pixMap,pixIndex,whiteBallMin,whiteBallMax,imageHeight,imageWidth,ballDiameter);
+				if (whitePosition.score > scoreThreshold) {
+					highScoringWhite++;
+					if (whitePosition.x > rightWhiteBall) rightWhiteBall=whitePosition.x;
+					if (whitePosition.x < leftWhiteBall) leftWhiteBall=whitePosition.x;
+					if (whitePosition.y > downWhiteBall) downWhiteBall=whitePosition.y;
+					if (whitePosition.y < upWhiteBall) upWhiteBall=whitePosition.y;
+				}
 			}
 
-			if (testScore >= scoreThreshold) {
-				highScoringYellow++;
-				if (xPos > rightYellowBall) rightYellowBall = xPos;
-				if (xPos < leftYellowBall)  leftYellowBall  = xPos;
-				if (yPos > downYellowBall)  downYellowBall  = yPos;
-				if (yPos < upYellowBall)    upYellowBall    = yPos;
-			}
-
-			testScore = getScore(pixMap, pixelIndex, whiteBallMin, whiteBallMax, imageHeight, imageWidth, ballDiameter);
-
-			if (testScore > whiteScore) {
-				whiteScore      = testScore;
-				whitePosition.x = xPos;
-				whitePosition.y = yPos;
-			}
-
-			if (testScore >= scoreThreshold) {
-				highScoringWhite++;
-				if (xPos > rightWhiteBall) rightWhiteBall = xPos;
-				if (xPos < leftWhiteBall)  leftWhiteBall  = xPos;
-				if (yPos > downWhiteBall)  downWhiteBall  = yPos;
-				if (yPos < upWhiteBall)    upWhiteBall    = yPos;
-			}
-
+			yPos += ballDiameter/2;
 		}
+		xPos += ballDiameter/2;
 	}
+
 
 	if (!highScoringRed) {
 		printf("Error : Red ball is too small or nonexistant\n");
@@ -331,7 +320,7 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-	fprintf(posFile,"Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d",redPosition.x,redPosition.y,redScore,yellowPosition.x,yellowPosition.y,yellowScore,whitePosition.x,whitePosition.y,whiteScore);
+	fprintf(posFile,"Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d",redPosition.x,redPosition.y,redPosition.score,yellowPosition.x,yellowPosition.y,yellowPosition.score,whitePosition.x,whitePosition.y,whitePosition.score);
 
 	fclose(posFile);
 
@@ -348,24 +337,85 @@ struct color intToColor(int colorInteger) {
 	return colorOutput;
 }
 
-int getScore(unsigned int *pixMap, int index, struct color minRange, struct color maxRange, int imageHeight, int imageWidth, int ballDiameter) {
+int getScore(unsigned int *pixMap, int index, struct color minRange, struct color maxRange, int imageHeight, int imageWidth, int ballDiameter, char mode) {
 
 	int score = 0;
 	struct color pixColor={0,0,0};
 
-	//Verifying that all the area we will check for is within the limits of the image
-	if (index%imageWidth > imageWidth-ballDiameter || index/imageWidth > imageHeight-ballDiameter) {
-		printf("Error : trying to get score too close to image limits, trying to access pixels outside image");
-		return -1;
-	};
+	if (mode=='s') {
 
-	//Scanning the area of interest for pixels within the range, and incrementing the score for each valid pixel
-	for (int xPos = index % imageWidth ; xPos < index%imageWidth + ballDiameter ; xPos++) {
-		for (int yPos = index/imageWidth ; yPos < index/imageWidth + ballDiameter ; yPos++) {
-			pixColor = intToColor(pixMap[xPos + yPos*imageWidth]);
-			if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
+		//Verifying that all the area we will check for is within the limits of the image
+		if (index%imageWidth > imageWidth-ballDiameter || index/imageWidth > imageHeight-ballDiameter) {
+			printf("Error : trying to get score too close to image limits, trying to access pixels outside image\n");
+			return -1;
+		};
+
+		//Scanning the area of interest for pixels within the range, and incrementing the score for each valid pixel
+		int xPos, yPos;
+		for (xPos = index % imageWidth ; xPos < index%imageWidth + ballDiameter ; xPos++) {
+			for (yPos = index/imageWidth ; yPos < index/imageWidth + ballDiameter ; yPos++) {
+				pixColor = intToColor(pixMap[xPos + yPos*imageWidth]);
+				if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
+			}
 		}
+		return score;
+
+	} else if(mode=='c') {
+
+		//Verifying that all the area we will check for is within the limits of the image
+		if (index%imageWidth >= imageWidth-1 || index/imageWidth >= imageHeight-1 || index%imageWidth <= 0 || index/imageWidth <= 0) {
+			printf("Error : trying to get score too close to image limits, trying to access pixels outside image\n");
+			return -1;
+		};
+
+		pixColor = intToColor(pixMap[index]);
+		if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
+		pixColor = intToColor(pixMap[index+1]);
+		if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
+		pixColor = intToColor(pixMap[index-1]);
+		if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
+		pixColor = intToColor(pixMap[index+imageWidth]);
+		if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
+		pixColor = intToColor(pixMap[index-imageWidth]);
+		if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
+
+		return score;
+	} else {
+		printf("Error : invalid functionning mode for getScore");
+		return -1;
+	}
+}
+
+struct vectPlus convergence(unsigned int *pixMap, int index, struct color minRange, struct color maxRange, int imageHeight, int imageWidth, int ballDiameter) {
+
+	int scoreUpdate;
+	struct vectPlus outVect = {0,0,0};
+
+	outVect.score = getScore(pixMap,index,minRange,maxRange,imageHeight,imageWidth,ballDiameter,'s');
+
+	scoreUpdate = getScore(pixMap,index+1,minRange,maxRange,imageHeight,imageWidth,ballDiameter,'s');
+	if (scoreUpdate > outVect.score) {
+		return convergence(pixMap,index+1,minRange,maxRange,imageHeight,imageWidth,ballDiameter);
 	}
 
-	return score;
+	scoreUpdate = getScore(pixMap,index-1,minRange,maxRange,imageHeight,imageWidth,ballDiameter,'s');
+	if (scoreUpdate > outVect.score) {
+		return convergence(pixMap,index-1,minRange,maxRange,imageHeight,imageWidth,ballDiameter);
+	}
+
+	scoreUpdate = getScore(pixMap,index+imageWidth,minRange,maxRange,imageHeight,imageWidth,ballDiameter,'s');
+	if (scoreUpdate > outVect.score) {
+		return convergence(pixMap,index+imageWidth,minRange,maxRange,imageHeight,imageWidth,ballDiameter);
+	}
+
+	scoreUpdate = getScore(pixMap,index-imageWidth,minRange,maxRange,imageHeight,imageWidth,ballDiameter,'s');
+	if (scoreUpdate > outVect.score) {
+		return convergence(pixMap,index-imageWidth,minRange,maxRange,imageHeight,imageWidth,ballDiameter);
+	}
+
+	outVect.x = index%imageWidth;
+	outVect.y = index/imageWidth;
+
+	return outVect;
+
 }
