@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 /*
 Le programme va lire le fichier Pixmap.bin contenant les pixels de l’image. 
@@ -59,6 +60,8 @@ int getScore(unsigned int *pixMap, int index /*Designate the top left corner of 
 //Main writing
 
 int main(int argc, char **argv) {
+
+	clock_t begin = clock();
 
 	//Initializing with a default value the variables that will store the program arguments
 	int ballDiameter=11;
@@ -308,6 +311,11 @@ int main(int argc, char **argv) {
 	fprintf(posFile,"Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d\n",redPosition.x,redPosition.y,redScore,yellowPosition.x,yellowPosition.y,yellowScore,whitePosition.x,whitePosition.y,whiteScore);
 
 	fclose(posFile);
+
+	clock_t end = clock();
+	double time_spent = (double)(end-begin);
+	time_spent = time_spent*1000/CLOCKS_PER_SEC;
+	printf("%lf ms",time_spent);
 
 	return 0;
 }
