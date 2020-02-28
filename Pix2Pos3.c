@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "PM.h"
+#include <time.h>
 
 
 /* Structure definition */
@@ -282,6 +282,8 @@ void FindTable(){
 
 /*Main*/
 int main(int argc, char **argv){
+
+	time_t begin = clock();
 	Tiles = malloc(1);
 	//PixelInt = malloc(1);
 /*read arguments*/
@@ -415,15 +417,9 @@ int main(int argc, char **argv){
 	fprintf(PosTxt, "Red:%d,%d,%d\nYellow:%d,%d,%d\nWhite:%d,%d,%d\n", Red.X, Red.Y, Red.Score, Yellow.X, Yellow.Y, Yellow.Score, White.X, White.Y, White.Score);
 /**/
 	printf("Program executed\n");
+
+	time_t end = clock();
+	float time_of_execution = ((double)end-(double)begin)*1000/CLOCKS_PER_SEC;
+	printf("%lf ms",time_of_execution);
 	Exit(0);
 }
-
-
-
-
-
-
-
-
-
-

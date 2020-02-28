@@ -64,7 +64,6 @@ int getScore(unsigned int *pixMap, int index /*Designate the top left corner of 
 //Main writing
 
 int main(int argc, char **argv) {
-	clock_t begin = clock();
 
 	clock_t begin = clock();
 
@@ -231,7 +230,7 @@ int main(int argc, char **argv) {
 			pixColor = intToColor(pixMap[centerPoint]);
 			if (pixColor.red >= backGroundMin.red && pixColor.red <= backGroundMax.red && pixColor.green >= backGroundMin.green && pixColor.green <= backGroundMax.green && pixColor.blue >= backGroundMin.blue && pixColor.blue <= backGroundMax.blue) continue;
 
-			testScore = getScore(pixMap, pixelIndex, redBallMin, redBallMax, imageHeight, imageWidth, ballDiameter);
+			testScore = getScore(pixMap, pixelIndex-(ballDiameter/4)*(imageWidth+1), redBallMin, redBallMax, imageHeight, imageWidth, ballDiameter);
 
 			if (testScore > redScore) {
 				redScore      = testScore;
@@ -247,7 +246,7 @@ int main(int argc, char **argv) {
 				if (yPos < upRedBall)    upRedBall    = yPos;
 			}
 
-			testScore = getScore(pixMap, pixelIndex, yellowBallMin, yellowBallMax, imageHeight, imageWidth, ballDiameter);
+			testScore = getScore(pixMap, pixelIndex-(ballDiameter/4)*(imageWidth+1), yellowBallMin, yellowBallMax, imageHeight, imageWidth, ballDiameter);
 
 			if (testScore > yellowScore) {
 				yellowScore      = testScore;
@@ -263,7 +262,7 @@ int main(int argc, char **argv) {
 				if (yPos < upYellowBall)    upYellowBall    = yPos;
 			}
 
-			testScore = getScore(pixMap, pixelIndex, whiteBallMin, whiteBallMax, imageHeight, imageWidth, ballDiameter);
+			testScore = getScore(pixMap, pixelIndex-(ballDiameter/4)*(imageWidth+1), whiteBallMin, whiteBallMax, imageHeight, imageWidth, ballDiameter);
 
 			if (testScore > whiteScore) {
 				whiteScore      = testScore;
