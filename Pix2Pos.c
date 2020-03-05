@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #define MIN_LEGAL_IMAGE_SIZE 10
 #define MAX_LEGAL_IMAGE_SIZE 1000
 #define MIN_LEGAL_BALL_SIZE 5
@@ -72,6 +73,8 @@ struct vectPlus convergence(unsigned int *pixMap, int index, struct color minRan
 
 int main(int argc, char **argv) {
 
+	time_t begin = clock();
+
 	//Initializing with a default value the variables that will store the program arguments
 	int ballDiameter=11;
 	struct vect topLeftCorner={15,15}, bottomRightCorner={85,65};
@@ -79,7 +82,6 @@ int main(int argc, char **argv) {
 
 	//An error flag tracking various errors. Allow to check and warn for different errors before exiting the program
 	int errFlag = 0;
-
 	//extracting data from input file
 	unsigned int imageWidth;
 	unsigned int imageHeight;
@@ -87,7 +89,7 @@ int main(int argc, char **argv) {
 	unsigned int storeReturn;
 
 	FILE *binmap;
-	binmap = fopen("Pixmap.bin","r");
+	binmap = fopen("Pixmap.bin","rb");
 	if (binmap==NULL) {
 		printf("Error : cannot access pixmap\n");
 		errFlag = 1;
@@ -213,7 +215,7 @@ int main(int argc, char **argv) {
 
 	int crossScore;
 	int pixIndex;
-	struct vectPlus redPosition, yellowPosition, whitePosition;
+	struct vectPlus redPosition, yellowPosition, whitePosition, positionUpdate;
 	int highScoringRed=0, highScoringYellow=0, highScoringWhite=0;
 	int rightRedBall=-1, leftRedBall=imageWidth, upRedBall=imageHeight, downRedBall=-1, rightYellowBall=-1, leftYellowBall=imageWidth, upYellowBall=imageHeight, downYellowBall=-1, rightWhiteBall=-1, leftWhiteBall=imageWidth, upWhiteBall=imageHeight, downWhiteBall=-1;
 
@@ -227,8 +229,9 @@ int main(int argc, char **argv) {
 			pixIndex = xPos+yPos*imageWidth;
 			crossScore = getScore(pixMap,pixIndex,redBallMin,redBallMax,imageHeight,imageWidth,ballDiameter,'c');
 			if (crossScore!=0) {
-				redPosition = convergence(pixMap,pixIndex,redBallMin,redBallMax,imageHeight,imageWidth,ballDiameter);
-				if (redPosition.score > scoreThreshold) {
+				positionUpdate = convergence(pixMap,pixIndex,redBallMin,redBallMax,imageHeight,imageWidth,ballDiameter);
+				if (positionUpdate.score > scoreThreshold) {
+					redPosition = positionUpdate;
 					highScoringRed++;
 					if (redPosition.x > rightRedBall) rightRedBall=redPosition.x;
 					if (redPosition.x < leftRedBall) leftRedBall=redPosition.x;
@@ -239,8 +242,9 @@ int main(int argc, char **argv) {
 
 			crossScore = getScore(pixMap,pixIndex,yellowBallMin,yellowBallMax,imageHeight,imageWidth,ballDiameter,'c');
 			if (crossScore!=0) {
-				yellowPosition = convergence(pixMap,pixIndex,yellowBallMin,yellowBallMax,imageHeight,imageWidth,ballDiameter);
-				if (yellowPosition.score > scoreThreshold) {
+				positionUpdate = convergence(pixMap,pixIndex,yellowBallMin,yellowBallMax,imageHeight,imageWidth,ballDiameter);
+				if (positionUpdate.score > scoreThreshold) {
+					yellowPosition = positionUpdate;
 					highScoringYellow++;
 					if (yellowPosition.x > rightYellowBall) rightYellowBall=yellowPosition.x;
 					if (yellowPosition.x < leftYellowBall) leftYellowBall=yellowPosition.x;
@@ -251,8 +255,9 @@ int main(int argc, char **argv) {
 
 			crossScore = getScore(pixMap,pixIndex,whiteBallMin,whiteBallMax,imageHeight,imageWidth,ballDiameter,'c');
 			if (crossScore!=0) {
-				whitePosition = convergence(pixMap,pixIndex,whiteBallMin,whiteBallMax,imageHeight,imageWidth,ballDiameter);
-				if (whitePosition.score > scoreThreshold) {
+				positionUpdate = convergence(pixMap,pixIndex,whiteBallMin,whiteBallMax,imageHeight,imageWidth,ballDiameter);
+				if (positionUpdate.score > scoreThreshold) {
+					whitePosition = positionUpdate;
 					highScoringWhite++;
 					if (whitePosition.x > rightWhiteBall) rightWhiteBall=whitePosition.x;
 					if (whitePosition.x < leftWhiteBall) leftWhiteBall=whitePosition.x;
@@ -301,6 +306,7 @@ int main(int argc, char **argv) {
 		errFlag = 1;
 	}
 	if ((whitePosition.x-yellowPosition.x)*(whitePosition.x-yellowPosition.x) + (whitePosition.y-yellowPosition.y)*(whitePosition.y-yellowPosition.y) < ballDiameter*ballDiameter) {
+		printf("white : %d %d ; yellow : %d %d\n",whitePosition.x,whitePosition.y,yellowPosition.x,yellowPosition.y);
 		printf("Error : superposition of yellow and white ball\n");
 		errFlag = 1;
 	}
@@ -323,6 +329,11 @@ int main(int argc, char **argv) {
 	fprintf(posFile,"Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d",redPosition.x,redPosition.y,redPosition.score,yellowPosition.x,yellowPosition.y,yellowPosition.score,whitePosition.x,whitePosition.y,whitePosition.score);
 
 	fclose(posFile);
+	
+
+	time_t end = clock();
+	double run_time = (float)(end-begin)*1000/CLOCKS_PER_SEC;
+	printf("%lf ms\n",run_time);
 
 	return 0;
 }
