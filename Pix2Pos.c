@@ -82,28 +82,28 @@ int main(int argc, char **argv) {
 	unsigned int storeReturn;
 
 	FILE *binmap;
-	binmap = fopen("Pixmap.bin","r");
+	binmap = fopen("Pixmap.bin","rb");
 	if (binmap==NULL) {
 		printf("Error : cannot access pixmap\n");
 		errFlag = 1;
 	}
 
-	storeReturn = fread(&imageWidth,sizeof(unsigned int),1,binmap);
+	storeReturn = fread(&imageHeight,sizeof(unsigned int),1,binmap);
 	if (storeReturn!=1) {
 		printf("Error : cannot read image width, cannot continue\n");
 		errFlag = 1;
 	}
-	if (imageWidth > MAX_LEGAL_IMAGE_SIZE || imageWidth < MIN_LEGAL_IMAGE_SIZE) {
+	if (imageHeight > MAX_LEGAL_IMAGE_SIZE || imageHeight < MIN_LEGAL_IMAGE_SIZE) {
 		printf("Error : image width illegal, should be comprised in the range %d:%d\n",MIN_LEGAL_IMAGE_SIZE,MAX_LEGAL_IMAGE_SIZE);
 		errFlag = 1;
 	}
 
-	storeReturn = fread(&imageHeight,sizeof(unsigned int),1,binmap);
+	storeReturn = fread(&imageWidth,sizeof(unsigned int),1,binmap);
 	if (storeReturn!=1) {
 		printf("Error : cannot read image height, cannot continue\n");
 		errFlag = 1;
 	}
-	if (imageHeight > MAX_LEGAL_IMAGE_SIZE || imageHeight < MIN_LEGAL_IMAGE_SIZE) {
+	if (imageWidth > MAX_LEGAL_IMAGE_SIZE || imageWidth < MIN_LEGAL_IMAGE_SIZE) {
 		printf("Error : image height illegal, should be comprised in the range %d:%d\n",MIN_LEGAL_IMAGE_SIZE,MAX_LEGAL_IMAGE_SIZE);
 		errFlag = 1;
 	}
