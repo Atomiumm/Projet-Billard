@@ -1,7 +1,0 @@
-- Are global variables OK ?
-- Multiple initialisation for a single variable
-- pow(x,2) or x*x ?
-- Detecter les boules de couleure inconnue ?
-- C min max et Lmin max
-- Can fclose, fwrite, fprintf can return errors ? What is the worse that 
-- Langue des commentaires
