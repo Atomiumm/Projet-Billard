@@ -167,16 +167,18 @@ void FindBall(unsigned int *PixelInt, int PixelWidth, struct coordinate *PBall, 
 					struct coordinate *PTile = &Tile;
 					PTile->Score = GetScore(PixelInt, PixelWidth, Tile, BallDiameter, BallDiameter, RangeMin, RangeMax, 1);
 					Converge(PixelInt, PixelWidth, PTile, BallDiameter, RangeMin, RangeMax);
-					if(PBall->X < 0  && Tile.Score > 7*BallDiameter*BallDiameter/10){
-						PBall->X = Tile.X;
-						PBall->Y = Tile.Y;
-						PBall->Score = Tile.Score;
-					}
-					else if((abs(PBall->X - Tile.X) > BallDiameter/2 || abs(PBall->Y - Tile.Y) > BallDiameter/2) && Tile.Score > 7*BallDiameter*BallDiameter/10){
-						fprintf(stderr, "Error : multiple balls in range: %d,%d,%d : %d,%d,%d, cannot continue\n", RangeMin.R, RangeMin.G, RangeMin.B, RangeMax.R,RangeMax.G,RangeMax.B);
-						//fprintf(stderr, "Ball1: %d,%d:%d; Ball2: %d,%d:%d", PBall->X, PBall->Y, PBall->Score, Tile.X, Tile.Y, Tile.Score);		
-						free(PixelInt);
-						exit(EXIT_FAILURE);
+					if(Tile.Score > 7*BallDiameter*BallDiameter/10){
+						if(PBall->X < 0){
+							PBall->X = Tile.X;
+							PBall->Y = Tile.Y;
+							PBall->Score = Tile.Score;
+						}
+						else if(abs(PBall->X - Tile.X) > BallDiameter/2 || abs(PBall->Y - Tile.Y) > BallDiameter/2){
+							fprintf(stderr, "Error : multiple balls in range: %d,%d,%d : %d,%d,%d, cannot continue\n", RangeMin.R, RangeMin.G, RangeMin.B, RangeMax.R,RangeMax.G,RangeMax.B);
+							//fprintf(stderr, "Ball1: %d,%d:%d; Ball2: %d,%d:%d", PBall->X, PBall->Y, PBall->Score, Tile.X, Tile.Y, Tile.Score);		
+							free(PixelInt);
+							exit(EXIT_FAILURE);
+						}
 					}
 				}
 			}
@@ -329,7 +331,7 @@ int main(int argc, char **argv){
 		struct coordinate *PWhite = &White;
 		FindBall(PixelInt, PixelWidth, PWhite, TableMax, TableMin, BallDiameter, WBallMin, WBallMax);
 		free(PixelInt);
-	/*Check if the balls are all here*/
+	/*Check if the balls are all here and if they are overlapping*/
 		if(Red.X < 0){
 			fprintf(stderr, "Error : red ball missing\n");
 			exit(EXIT_FAILURE);
@@ -340,6 +342,18 @@ int main(int argc, char **argv){
 		}
 		if(White.X < 0){
 			fprintf(stderr, "Error : white ball missing\n");
+			exit(EXIT_FAILURE);
+		}
+		if(abs(Red.X - White.X) < BallDiameter && abs(Red.Y - White.Y) < BallDiameter){
+			fprintf(stderr, "Error : white ball and red ball overlapping\n");
+			exit(EXIT_FAILURE);
+		}
+		if(abs(Red.X - Yellow.X) < BallDiameter && abs(Red.Y - Yellow.Y) < BallDiameter){
+			fprintf(stderr, "Error : yellow ball and red ball overlapping\n");
+			exit(EXIT_FAILURE);
+		}
+		if(abs(Yellow.X - White.X) < BallDiameter && abs(Yellow.Y - White.Y) < BallDiameter){
+			fprintf(stderr, "Error : white ball and yellow ball overlapping\n");
 			exit(EXIT_FAILURE);
 		}
 	/*Open and write in Pos.txt*/
