@@ -2,430 +2,370 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#define MIN_LEGAL_IMAGE_SIZE 10
-#define MAX_LEGAL_IMAGE_SIZE 1000
-#define MIN_LEGAL_BALL_SIZE 5
-#define MAX_LEGAL_BALL_SIZE 20
 
-/*
-Le programme va lire le fichier Pixmap.bin contenant les pixels de l’image. 
-Les coordonnées des pixels des boules couleurs seront calculées et sauvées dans le fichier Pos.txt
-*/
+#define MIN_BALL_DIAMETER 5
+#define MAX_BALL_DIAMETER 20
+#define MIN_IMAGE_WIDTH 10
+#define MIN_IMAGE_HEIGHT 10
+#define MAX_IMAGE_WIDTH 1000
+#define MAX_IMAGE_HEIGHT 1000
 
-/*
-Les ranges de couleurs des 3 boules ainsi que pour le fond bleu sont donnés
-Les dimensions du pixmap sont données
-Toutes valeurs du fichier sont encodée au format unsigned int
-Format couleur 0x00RRGGBB
-Les boules ne se superposent pas
-Une boule fait 11x11 pixels
-*/
 
-/*
-Pixmap.bin:
-Largeur de l'image en pixels
-Hauteur de l'image en pixels
-pixel0
-pixel1
-.
-.
-last pixel
-*/
-
-/*
-Pos.txt
-Red: Xred, Yred, ScoreRed
-Yellow: Xyellow, Yyellow, ScoreYellow
-White: Xwhite, Ywhite, ScoreWhite
-*/
-
-//Structures declaration
-
-struct color {
-	int red;
-	int green;
-	int blue;
+/*Structure declaration*/
+struct colour {
+	signed short int R;
+	signed short int G;
+	signed short int B;
 };
 
-struct vect {
-	int x;
-	int y;
-};
-
-struct vectPlus {
-	int x;
-	int y;
-	int score;
+struct coordinate {
+	signed short int X;
+	signed short int Y;
+	signed short int Score;
 };
 
 
-//Functions declaration
 
-//Outputs red, green and blue components of an integer color code in a custom structures
-struct color intToColor(int colorInteger); //Outputs a color structure based on an integer input
-
-//Calculates the number of pixels in a certain color range (score) in a given ballSize*ballSize square
-int getScore(unsigned int *pixMap, int index /*Designate the top left corner of the square*/, struct color minRange, struct color maxRange, int imageHeight, int imageWidth, int ballDiameter, char mode); 
-
-struct vectPlus convergence(unsigned int *pixMap, int index, struct color minRange, struct color maxRange, int imageHeight, int imageWidth, int ballDiameter);
-
-//Main writing
-
-int main(int argc, char **argv) {
-
-	clock_t begin = clock();
-
-	//Initializing with a default value the variables that will store the program arguments
-	int ballDiameter=11;
-	struct vect topLeftCorner={15,15}, bottomRightCorner={85,65};
-	struct color redBallMin = {160,0,0}, redBallMax = {255,160,160}, yellowBallMin = {140,140,0}, yellowBallMax = {255,255,175}, whiteBallMin = {100,100,100}, whiteBallMax = {255,255,255}, backGroundMin = {39,62,91}, backGroundMax = {116,202,255};
-
-	//An error flag tracking various errors. Allow to check and warn for different errors before exiting the program
-	int errFlag = 0;
-	//extracting data from input file
-	unsigned int imageWidth;
-	unsigned int imageHeight;
-	unsigned int *pixMap;
-	unsigned int storeReturn;
-
-	FILE *binmap;
-	binmap = fopen("Pixmap.bin","rb");
-	if (binmap==NULL) {
-		printf("Error : cannot access pixmap\n");
-		errFlag = 1;
-	}
-
-	storeReturn = fread(&imageHeight,sizeof(unsigned int),1,binmap);
-	if (storeReturn!=1) {
-		printf("Error : cannot read image width, cannot continue\n");
-		errFlag = 1;
-	}
-	if (imageHeight > MAX_LEGAL_IMAGE_SIZE || imageHeight < MIN_LEGAL_IMAGE_SIZE) {
-		printf("Error : image width illegal, should be comprised in the range %d:%d\n",MIN_LEGAL_IMAGE_SIZE,MAX_LEGAL_IMAGE_SIZE);
-		errFlag = 1;
-	}
-
-	storeReturn = fread(&imageWidth,sizeof(unsigned int),1,binmap);
-	if (storeReturn!=1) {
-		printf("Error : cannot read image height, cannot continue\n");
-		errFlag = 1;
-	}
-	if (imageWidth > MAX_LEGAL_IMAGE_SIZE || imageWidth < MIN_LEGAL_IMAGE_SIZE) {
-		printf("Error : image height illegal, should be comprised in the range %d:%d\n",MIN_LEGAL_IMAGE_SIZE,MAX_LEGAL_IMAGE_SIZE);
-		errFlag = 1;
-	}
-
-	if (errFlag) {
-		fclose(binmap);
-		return -1; //end the program if an error as occured since errors in file reading prevents further advancement
-	}
-
-	pixMap = malloc(imageWidth*imageHeight*sizeof(unsigned int));
-	if (pixMap==NULL) {
-		printf("Error : cannot allocate space for the pixMap\n");
-		free(pixMap);
-		fclose(binmap);
-		return -1; //instantly ends the program since this error will prevent any further advancement
-	}
-
-	storeReturn = fread(pixMap,sizeof(unsigned int),imageWidth*imageHeight,binmap);
-	if (storeReturn!=imageWidth*imageHeight) {
-		printf("Error : cannot read pixel values, file may not contain enough data\n");
-		free(pixMap);
-		fclose(binmap);
-		return -1;
-	}
-
-	if (fread(&storeReturn,sizeof(unsigned int),1,binmap)==1) {
-		printf("Warning : more pixels availables than anticipated, results, if any, are to be interpreted with caution\n");
-	}
-
-	fclose(binmap);
-
-	//Storing the program arguments while testing their validity
-	if (argc==30) {
-		topLeftCorner.x     = atoi(argv[1]);
-		bottomRightCorner.x = atoi(argv[2]);
-		topLeftCorner.y     = atoi(argv[3]);
-		bottomRightCorner.y = atoi(argv[4]);
-		redBallMin.red      = atoi(argv[5]);
-		redBallMax.red      = atoi(argv[6]);
-		redBallMin.green    = atoi(argv[7]);
-		redBallMax.green    = atoi(argv[8]);
-		redBallMin.blue     = atoi(argv[9]);
-		redBallMax.blue     = atoi(argv[10]);
-		yellowBallMin.red   = atoi(argv[11]);
-		yellowBallMax.red   = atoi(argv[12]);
-		yellowBallMin.green = atoi(argv[13]);
-		yellowBallMax.green = atoi(argv[14]);
-		yellowBallMin.blue  = atoi(argv[15]);
-		yellowBallMax.blue  = atoi(argv[16]);
-		whiteBallMin.red    = atoi(argv[17]);
-		whiteBallMax.red    = atoi(argv[18]);
-		whiteBallMin.green  = atoi(argv[19]);
-		whiteBallMax.green  = atoi(argv[20]);
-		whiteBallMin.blue   = atoi(argv[21]);
-		whiteBallMax.blue   = atoi(argv[22]);
-		backGroundMin.red   = atoi(argv[23]);
-		backGroundMax.red   = atoi(argv[24]);
-		backGroundMin.green = atoi(argv[25]);
-		backGroundMax.green = atoi(argv[26]);
-		backGroundMin.blue  = atoi(argv[27]);
-		backGroundMax.blue  = atoi(argv[28]);
-		ballDiameter        = atoi(argv[29]);
-
-		if (topLeftCorner.x > bottomRightCorner.x || topLeftCorner.y > bottomRightCorner.y || topLeftCorner.x < 0 || topLeftCorner.y < 0 || bottomRightCorner.x > imageWidth || bottomRightCorner.y > imageHeight) {
-			printf("Error : invalid values passed as table size, cannot continue\n");
-			errFlag = 1;
+/*Function declaration*/
+	/*Converting a decimal colour to a RGB colour*/
+struct colour Int2Colour(int ColourInt) {
+	struct colour ColourRGB;
+	/*Detecting if int not in correct range*/
+		if(ColourInt < 0 || ColourInt > 16777215){
+			ColourRGB.R = -1;
+			ColourRGB.G = -1;
+			ColourRGB.B = -1;
+			return ColourRGB;
 		}
-		if (redBallMin.red > redBallMax.red || redBallMin.green > redBallMax.green || redBallMin.blue > redBallMax.blue || redBallMin.red < 0 || redBallMin.green < 0 || redBallMin.blue < 0 || redBallMax.red > 255 || redBallMax.green > 255 || redBallMax.blue > 255) {
-			printf("Error : invalid values passed as red ball colour range, cannot continue\n");
-			errFlag = 1;
-		}
-		if (yellowBallMin.red > yellowBallMax.red || yellowBallMin.green > yellowBallMax.green || yellowBallMin.blue > yellowBallMax.blue || yellowBallMin.red < 0 || yellowBallMin.green < 0 || yellowBallMin.blue < 0 || yellowBallMax.red > 255 || yellowBallMax.green > 255 || yellowBallMax.blue > 255) {
-			printf("Error : invalid values passed as yellow ball colour range, cannot continue\n");
-			errFlag = 1;
-		}
-		if (whiteBallMin.red > whiteBallMax.red || whiteBallMin.green > whiteBallMax.green || whiteBallMin.blue > whiteBallMax.blue || whiteBallMin.red < 0 || whiteBallMin.green < 0 || whiteBallMin.blue < 0 || whiteBallMax.red > 255 || whiteBallMax.green > 255 || whiteBallMax.blue > 255) {
-			printf("Error : invalid values passed as white ball colour range, cannot continue\n");
-			errFlag = 1;
-		}
-		if (backGroundMin.red > backGroundMax.red || backGroundMin.green > backGroundMax.green || backGroundMin.blue > backGroundMax.blue || backGroundMin.red < 0 || backGroundMin.green < 0 || backGroundMin.blue < 0 || backGroundMax.red > 255 || backGroundMax.green > 255 || backGroundMax.blue > 255) {
-			printf("Error : invalid values passed as background colour range, cannot continue\n");
-			errFlag = 1;
-		}
-		if (ballDiameter < MIN_LEGAL_BALL_SIZE || ballDiameter > MAX_LEGAL_BALL_SIZE) {
-			printf("Error : ball diameter illegal, should be comprised in the range %d:%d\n",MIN_LEGAL_BALL_SIZE,MAX_LEGAL_BALL_SIZE);
-			errFlag = 1;
-		}
-		if (ballDiameter > bottomRightCorner.x-topLeftCorner.x || ballDiameter > bottomRightCorner.y-topLeftCorner.y) {
-			printf("Error : ball is larger than table, cannot process\n");
-			errFlag = 1;
-		}
-
-	} else {
-		printf("Error : invalid number of arguments\n");
-		errFlag = 1;
+	/*Calculating colour*/
+		ColourRGB.B = ColourInt % 256;
+		ColourInt /= 256;
+		ColourRGB.G = ColourInt % 256;
+		ColourInt /= 256;
+		ColourRGB.R = ColourInt;
+	return ColourRGB;
+}
+	/*Calculating the amount of pixels that correspond to the given range.	The last parameter (mode) can be two -> very fast calculation or one -> fast calculation or 0 -> precise calculation*/
+int GetScore(unsigned int *PixelInt, int PixelWidth, struct coordinate Coordinates, int DeltaX, int DeltaY, struct colour RangeMin, struct colour RangeMax, short int Mode){
+	int Score = 0;
+	if(Mode == 2){
+		struct colour PixelColour = Int2Colour(PixelInt[(Coordinates.X + DeltaX/4) + (Coordinates.Y + DeltaY/4)*PixelWidth]);
+		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", (Coordinates.X + DeltaX/4)+(Coordinates.Y + DeltaY/4)*PixelWidth);
+		if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
+		PixelColour = Int2Colour(PixelInt[(Coordinates.X + 3*DeltaX/4) + (Coordinates.Y + DeltaY/4)*PixelWidth]);
+		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", (Coordinates.X + 3*DeltaX/4)+(Coordinates.Y + DeltaY/4)*PixelWidth);
+		if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
+		PixelColour = Int2Colour(PixelInt[(Coordinates.X + DeltaX/4) + (Coordinates.Y + 3*DeltaY/4)*PixelWidth]);
+		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", (Coordinates.X + DeltaX/4)+(Coordinates.Y + 3*DeltaY/4)*PixelWidth);
+		if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
+		PixelColour = Int2Colour(PixelInt[(Coordinates.X + 3*DeltaX/4) + (Coordinates.Y + 3*DeltaY/4)*PixelWidth]);
+		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", (Coordinates.X + 3*DeltaX/4)+(Coordinates.Y + 3*DeltaY/4)*PixelWidth);
+		if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
 	}
-
-	if (errFlag) {
-		free(pixMap);
-		return -1;
+	else if(Mode == 1){
+		int x = Coordinates.X + DeltaX/2;
+		for(int y = Coordinates.Y; y < Coordinates.Y + DeltaY; y++){
+			struct colour PixelColour = Int2Colour(PixelInt[x + y*PixelWidth]);
+			if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", x + y*PixelWidth);
+			if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
+		}
+		int y = Coordinates.Y + DeltaY/2;
+		for(int x = Coordinates.X; x < Coordinates.X + DeltaX; x++){
+			struct colour PixelColour = Int2Colour(PixelInt[x + y*PixelWidth]);
+			if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", x + y*PixelWidth);
+			if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
+		}
 	}
-
-	int crossScore;
-	int pixIndex;
-	struct vectPlus redPosition, yellowPosition, whitePosition, positionUpdate;
-	int highScoringRed=0, highScoringYellow=0, highScoringWhite=0;
-	int rightRedBall=-1, leftRedBall=imageWidth, upRedBall=imageHeight, downRedBall=-1, rightYellowBall=-1, leftYellowBall=imageWidth, upYellowBall=imageHeight, downYellowBall=-1, rightWhiteBall=-1, leftWhiteBall=imageWidth, upWhiteBall=imageHeight, downWhiteBall=-1;
-
-	int scoreThreshold = 3*ballDiameter*ballDiameter/4;
-
-	int xPos = topLeftCorner.x + ballDiameter/2;
-	while (xPos < bottomRightCorner.x) {
-		int yPos = topLeftCorner.y + ballDiameter/2;
-		while (yPos < bottomRightCorner.y) {
-
-			pixIndex = xPos+yPos*imageWidth;
-			crossScore = getScore(pixMap,pixIndex,redBallMin,redBallMax,imageHeight,imageWidth,ballDiameter,'c');
-			if (crossScore!=0) {
-				positionUpdate = convergence(pixMap,pixIndex,redBallMin,redBallMax,imageHeight,imageWidth,ballDiameter);
-				if (positionUpdate.score > scoreThreshold) {
-					redPosition = positionUpdate;
-					highScoringRed++;
-					if (redPosition.x > rightRedBall) rightRedBall=redPosition.x;
-					if (redPosition.x < leftRedBall) leftRedBall=redPosition.x;
-					if (redPosition.y > downRedBall) downRedBall=redPosition.y;
-					if (redPosition.y < upRedBall) upRedBall=redPosition.y;
+	else{
+		for(int x = Coordinates.X; x < Coordinates.X + DeltaX; x++){
+			for(int y = Coordinates.Y; y < Coordinates.Y + DeltaY; y++){
+				struct colour PixelColour = Int2Colour(PixelInt[x + y*PixelWidth]);
+				if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", x + y*PixelWidth);
+				if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
+			}
+		}
+	}
+	return Score;
+}
+	/*Converging to a better position*/
+void Converge(unsigned int *PixelInt, int PixelWidth, struct coordinate *PCoordinate, int BallDiameter, struct colour RangeMin, struct colour RangeMax){
+	PCoordinate->X++;
+	int tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 1);
+	if(tempscore > PCoordinate->Score){
+		PCoordinate->Score = tempscore;
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		return;
+	}
+	PCoordinate->X-=2;
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 1);
+	if(tempscore > PCoordinate->Score){
+		PCoordinate->Score = tempscore;
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		return;
+	}
+	PCoordinate->X++;
+	PCoordinate->Y++;
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 1);
+	if(tempscore > PCoordinate->Score){
+		PCoordinate->Score = tempscore;
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		return;
+	}
+	PCoordinate->Y-=2;
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 1);
+	if(tempscore > PCoordinate->Score){
+		PCoordinate->Score = tempscore;
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		return;
+	}
+	PCoordinate->Y++;
+	PCoordinate->X++;
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 0);
+	if(tempscore > PCoordinate->Score){
+		PCoordinate->Score = tempscore;
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		return;
+	}
+	PCoordinate->X-=2;
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 0);
+	if(tempscore > PCoordinate->Score){
+		PCoordinate->Score = tempscore;
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		return;
+	}
+	PCoordinate->X++;
+	PCoordinate->Y++;
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 0);
+	if(tempscore > PCoordinate->Score){
+		PCoordinate->Score = tempscore;
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		return;
+	}
+	PCoordinate->Y-=2;
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 0);
+	if(tempscore > PCoordinate->Score){
+		PCoordinate->Score = tempscore;
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		return;
+	}
+	PCoordinate->Y++;
+}
+	/*Finding the balls*/
+void FindBall(unsigned int *PixelInt, int PixelWidth, struct coordinate *PBall, struct coordinate TableMax, struct coordinate TableMin, short signed int BallDiameter, struct colour RangeMin, struct colour RangeMax){
+	struct coordinate TileAmount;
+	TileAmount.X = (TableMax.X-TableMin.X) / BallDiameter + ((TableMax.X-TableMin.X) % BallDiameter == 0 ? 0: 1);
+	TileAmount.Y = (TableMax.Y-TableMin.Y) / BallDiameter + ((TableMax.Y-TableMin.Y) % BallDiameter == 0 ? 0: 1);
+	for(int TileY = 0; TileY < TileAmount.Y; TileY++){
+		int y = TableMin.Y + TileY*BallDiameter;
+		if(y+BallDiameter > TableMax.Y) y -= y + BallDiameter - TableMax.Y;
+		for(int TileX = 0; TileX < TileAmount.X; TileX++){
+			int x = TableMin.X + TileX*BallDiameter;
+			if(x+BallDiameter > TableMax.X) x -= x + BallDiameter - TableMax.X;
+			struct coordinate Tile = {x, y, 0};
+			if(GetScore(PixelInt, PixelWidth, Tile, BallDiameter, BallDiameter, RangeMin, RangeMax, 2)){
+				if(GetScore(PixelInt, PixelWidth, Tile, BallDiameter, BallDiameter, RangeMin, RangeMax, 0) > BallDiameter*BallDiameter/5){
+					struct coordinate *PTile = &Tile;
+					PTile->Score = GetScore(PixelInt, PixelWidth, Tile, BallDiameter, BallDiameter, RangeMin, RangeMax, 1);
+					Converge(PixelInt, PixelWidth, PTile, BallDiameter, RangeMin, RangeMax);
+					if(PBall->X < 0  && Tile.Score > 7*BallDiameter*BallDiameter/10){
+						PBall->X = Tile.X;
+						PBall->Y = Tile.Y;
+						PBall->Score = Tile.Score;
+					}
+					else if((abs(PBall->X - Tile.X) > BallDiameter/2 || abs(PBall->Y - Tile.Y) > BallDiameter/2) && Tile.Score > 7*BallDiameter*BallDiameter/10){
+						fprintf(stderr, "Error : multiple balls in range: %d,%d,%d : %d,%d,%d, cannot continue\n", RangeMin.R, RangeMin.G, RangeMin.B, RangeMax.R,RangeMax.G,RangeMax.B);
+						//fprintf(stderr, "Ball1: %d,%d:%d; Ball2: %d,%d:%d", PBall->X, PBall->Y, PBall->Score, Tile.X, Tile.Y, Tile.Score);		
+						free(PixelInt);
+						exit(EXIT_FAILURE);
+					}
 				}
 			}
-
-			crossScore = getScore(pixMap,pixIndex,yellowBallMin,yellowBallMax,imageHeight,imageWidth,ballDiameter,'c');
-			if (crossScore!=0) {
-				positionUpdate = convergence(pixMap,pixIndex,yellowBallMin,yellowBallMax,imageHeight,imageWidth,ballDiameter);
-				if (positionUpdate.score > scoreThreshold) {
-					yellowPosition = positionUpdate;
-					highScoringYellow++;
-					if (yellowPosition.x > rightYellowBall) rightYellowBall=yellowPosition.x;
-					if (yellowPosition.x < leftYellowBall) leftYellowBall=yellowPosition.x;
-					if (yellowPosition.y > downYellowBall) downYellowBall=yellowPosition.y;
-					if (yellowPosition.y < upYellowBall) upYellowBall=yellowPosition.y;
-				}
-			}
-
-			crossScore = getScore(pixMap,pixIndex,whiteBallMin,whiteBallMax,imageHeight,imageWidth,ballDiameter,'c');
-			if (crossScore!=0) {
-				positionUpdate = convergence(pixMap,pixIndex,whiteBallMin,whiteBallMax,imageHeight,imageWidth,ballDiameter);
-				if (positionUpdate.score > scoreThreshold) {
-					whitePosition = positionUpdate;
-					highScoringWhite++;
-					if (whitePosition.x > rightWhiteBall) rightWhiteBall=whitePosition.x;
-					if (whitePosition.x < leftWhiteBall) leftWhiteBall=whitePosition.x;
-					if (whitePosition.y > downWhiteBall) downWhiteBall=whitePosition.y;
-					if (whitePosition.y < upWhiteBall) upWhiteBall=whitePosition.y;
-				}
-			}
-
-			yPos += ballDiameter/2;
 		}
-		xPos += ballDiameter/2;
 	}
-
-
-	if (!highScoringRed) {
-		printf("Error : Red ball is too small or nonexistant\n");
-		errFlag = 1;
-	}
-	if (rightRedBall - leftRedBall > 2*ballDiameter|| downRedBall - upRedBall > 2*ballDiameter) {
-		printf("Error : Multiple red balls\n");
-		errFlag = 1;
-	}
-	if (!highScoringYellow) {
-		printf("Error : Yellow ball is too small or nonexistant\n");
-		errFlag = 1;
-	}
-	if (rightYellowBall - leftYellowBall > 2*ballDiameter|| downYellowBall - upYellowBall > 2*ballDiameter) {
-		printf("Error : Multiple Yellow balls\n");
-		errFlag = 1;
-	}
-	if (!highScoringWhite) {
-		printf("Error : White ball is too small or nonexistant\n");
-		errFlag = 1;
-	}
-	if (rightWhiteBall - leftWhiteBall > 2*ballDiameter|| downWhiteBall - upWhiteBall > 2*ballDiameter) {
-		printf("Error : Multiple white balls\n");
-		errFlag = 1;
-	}
-
-	if ((redPosition.x-yellowPosition.x)*(redPosition.x-yellowPosition.x) + (redPosition.y-yellowPosition.y)*(redPosition.y-yellowPosition.y) < ballDiameter*ballDiameter) {
-		printf("Error : superposition of red and yellow ball\n");
-		errFlag = 1;
-	}
-	if ((redPosition.x-whitePosition.x)*(redPosition.x-whitePosition.x) + (redPosition.y-whitePosition.y)*(redPosition.y-whitePosition.y) < ballDiameter*ballDiameter) {
-		printf("Error : superposition of red and white ball\n");
-		errFlag = 1;
-	}
-	if ((whitePosition.x-yellowPosition.x)*(whitePosition.x-yellowPosition.x) + (whitePosition.y-yellowPosition.y)*(whitePosition.y-yellowPosition.y) < ballDiameter*ballDiameter) {
-		printf("white : %d %d ; yellow : %d %d\n",whitePosition.x,whitePosition.y,yellowPosition.x,yellowPosition.y);
-		printf("Error : superposition of yellow and white ball\n");
-		errFlag = 1;
-	}
-
-	if (errFlag) {
-		free(pixMap);
-		return -1;
-	}
-
-	free(pixMap);
-
-	FILE *posFile;
-	posFile = fopen("Pos.txt","w");
-	if (posFile == NULL) {
-		printf("Error : cannot open Pos.txt\n");
-		fclose(posFile);
-		return -1;
-	}
-
-	fprintf(posFile,"Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d",redPosition.x,redPosition.y,redPosition.score,yellowPosition.x,yellowPosition.y,yellowPosition.score,whitePosition.x,whitePosition.y,whitePosition.score);
-
-	fclose(posFile);
-
-	clock_t end = clock();
-	double run_time = (double)(end - begin) * 1000 / CLOCKS_PER_SEC;
-	printf("%lf milliseconds\n", time_spent);
-
-	return 0;
 }
 
-//Other functions writing
 
-struct color intToColor(int colorInteger) {
-	struct color colorOutput;
-	colorOutput.blue  = colorInteger % 256;
-	colorOutput.green = (colorInteger/256) % 256;
-	colorOutput.red   = (colorInteger/65536) % 256;
-	return colorOutput;
-}
 
-int getScore(unsigned int *pixMap, int index, struct color minRange, struct color maxRange, int imageHeight, int imageWidth, int ballDiameter, char mode) {
-
-	int score = 0;
-	struct color pixColor={0,0,0};
-
-	if (mode=='s') {
-
-		//Verifying that all the area we will check for is within the limits of the image
-		if (index%imageWidth > imageWidth-ballDiameter || index/imageWidth > imageHeight-ballDiameter) {
-			printf("Error : trying to get score too close to image limits, trying to access pixels outside image\n");
-			return -1;
-		};
-
-		//Scanning the area of interest for pixels within the range, and incrementing the score for each valid pixel
-		int xPos, yPos;
-		for (xPos = index % imageWidth ; xPos < index%imageWidth + ballDiameter ; xPos++) {
-			for (yPos = index/imageWidth ; yPos < index/imageWidth + ballDiameter ; yPos++) {
-				pixColor = intToColor(pixMap[xPos + yPos*imageWidth]);
-				if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
+/*Main*/
+int main(int argc, char **argv){
+	
+	/*Variable Declaration*/
+		struct coordinate TableMin;
+		struct coordinate TableMax;
+		struct colour RBallMin;
+		struct colour RBallMax;
+		struct colour YBallMin;
+		struct colour YBallMax;
+		struct colour WBallMin;
+		struct colour WBallMax;
+		struct colour BGMin;
+		struct colour BGMax;
+		short signed int BallDiameter;
+	/*Reads arguments*/
+		if(argc == 30){
+			TableMin.Y   = atoi(argv[1]);
+			TableMax.Y   = atoi(argv[2]);
+			TableMin.X   = atoi(argv[3]);
+			TableMax.X   = atoi(argv[4]);
+			RBallMin.R   = atoi(argv[5]);
+			RBallMax.R   = atoi(argv[6]);
+			RBallMin.G   = atoi(argv[7]);
+			RBallMax.G   = atoi(argv[8]);
+			RBallMin.B   = atoi(argv[9]);
+			RBallMax.B   = atoi(argv[10]);
+			YBallMin.R   = atoi(argv[11]);
+			YBallMax.R   = atoi(argv[12]);
+			YBallMin.G   = atoi(argv[13]);
+			YBallMax.G   = atoi(argv[14]);
+			YBallMin.B   = atoi(argv[15]);
+			YBallMax.B   = atoi(argv[16]);
+			WBallMin.R   = atoi(argv[17]);
+			WBallMax.R   = atoi(argv[18]);
+			WBallMin.G   = atoi(argv[19]);
+			WBallMax.G   = atoi(argv[20]);
+			WBallMin.B   = atoi(argv[21]);
+			WBallMax.B   = atoi(argv[22]);
+			BGMin.R      = atoi(argv[23]);
+			BGMax.R      = atoi(argv[24]);
+			BGMin.G      = atoi(argv[25]);
+			BGMax.G      = atoi(argv[26]);
+			BGMin.B      = atoi(argv[27]);
+			BGMax.B      = atoi(argv[28]);
+			BallDiameter = atoi(argv[29]);
+		}
+		else {
+			fprintf(stderr, "Error : invalid number of argument, cannot continue\n");
+			exit(EXIT_FAILURE);
+		}
+	/*Check first errors*/
+		short unsigned int ErrorFlag = 0;
+		if(TableMin.X > TableMax.X || TableMin.Y > TableMax.Y || TableMin.X < 0 || TableMin.Y < 0){
+			fprintf(stderr, "Error : invalid values passed as table size, cannot continue\n");
+			ErrorFlag = 1;
+		}
+		if(RBallMin.R > RBallMax.R || RBallMin.G > RBallMax.G || RBallMin.B > RBallMax.B || RBallMin.R < 0 || RBallMin.G < 0 || RBallMin.B < 0){
+			fprintf(stderr, "Error : invalid values passed as red ball colour range, cannot continue\n");
+			ErrorFlag = 1;
+		}
+		if(YBallMin.R > YBallMax.R || YBallMin.G > YBallMax.G || YBallMin.B > YBallMax.B || YBallMin.R < 0 || YBallMin.G < 0 || YBallMin.B < 0){
+			fprintf(stderr, "Error : invalid values passed as yellow ball colour range, cannot continue\n");
+			ErrorFlag = 1;
+		}
+		if(WBallMin.R > WBallMax.R || WBallMin.G > WBallMax.G || WBallMin.B > WBallMax.B || WBallMin.R < 0 || WBallMin.G < 0 || WBallMin.B < 0){
+			fprintf(stderr, "Error : invalid values passed as white ball colour range, cannot continue\n");
+			ErrorFlag = 1;
+		}
+		if(BGMin.R > BGMax.R || BGMin.G > BGMax.G || BGMin.B > BGMax.B || BGMin.R < 0 || BGMin.G < 0 || BGMin.B < 0){
+			fprintf(stderr, "Error : invalid values passed as background colour range, cannot continue\n");
+			ErrorFlag = 1;
+		}
+		if(TableMax.X - TableMin.X < BallDiameter || TableMax.Y - TableMin.Y < BallDiameter){
+			fprintf(stderr, "Error : invalid values passed as table and ball size, ball is bigger than table, cannot continue\n");
+			ErrorFlag = 1;
+		}
+		if(BallDiameter < MIN_BALL_DIAMETER || BallDiameter > MAX_BALL_DIAMETER){
+			fprintf(stderr, "Error : invalid values passed as ball size, cannot continue\n");
+			ErrorFlag = 1;
+		}
+		if(ErrorFlag) exit(EXIT_FAILURE);
+	/*Open Pixmap.bin and verify width and heigth*/
+		int PixelWidth = 0;
+		int PixelHeight = 0;
+		FILE *PixmapBin;
+		PixmapBin = fopen("Pixmap14.bin", "rb");
+		if(PixmapBin == NULL){
+			perror("Error : couldn't open Pixmap.bin");
+			exit(EXIT_FAILURE);
+		}
+		if(!fread(&PixelWidth, sizeof(unsigned int), 1, PixmapBin)){
+			fprintf(stderr, "Error : couldn't read image width, cannot continue\n");
+			if(feof(PixmapBin)) fprintf(stderr, "Cause: end of file reached\n");
+			int err = ferror(PixmapBin);
+			if(err){
+				fprintf(stderr, "Cause: error %d\n", err);
+				clearerr(PixmapBin);
+			}
+			exit(EXIT_FAILURE);
+		}
+		if(!fread(&PixelHeight, sizeof(unsigned int), 1, PixmapBin)){
+			fprintf(stderr, "Error : couldn't read image height, cannot continue\n");
+			if(feof(PixmapBin)) fprintf(stderr, "Cause: end of file reached\n");
+			int err = ferror(PixmapBin);
+			if(err){
+				fprintf(stderr, "Cause: error %d\n", err);
+				clearerr(PixmapBin);
+			}
+			exit(EXIT_FAILURE);
+		}
+		if(PixelWidth < MIN_IMAGE_WIDTH || PixelHeight < MIN_IMAGE_HEIGHT || PixelWidth > MAX_IMAGE_WIDTH || PixelHeight > MAX_IMAGE_HEIGHT){
+			fprintf(stderr, "Error : invalid values passed as image size, cannot continue\n");
+			exit(EXIT_FAILURE);
+		}
+	/*Read the pixels and close the file*/
+		unsigned int *PixelInt;
+		PixelInt = malloc(sizeof(unsigned int)*(PixelWidth*PixelHeight+1));
+		int temp;
+		temp = fread(PixelInt, sizeof(unsigned int), PixelWidth*PixelHeight+1, PixmapBin);
+		if(temp != PixelWidth*PixelHeight){
+			fprintf(stderr, "Read %d pixels, expected %d\n", temp, PixelWidth*PixelHeight);
+			if(feof(PixmapBin)) fprintf(stderr, "Cause : end of file reached\n");
+			int err = ferror(PixmapBin);
+			if(err){
+				fprintf(stderr, "Cause : error %d\n", err);
+				clearerr(PixmapBin);
+			}
+			free(PixelInt);
+			exit(EXIT_FAILURE);
+		}
+		if(fclose(PixmapBin)) perror("Error : couldn't close Pixmap.bin");
+	/*Find the balls*/
+		struct coordinate Red = {-1, -1, -1};
+		struct coordinate *PRed = &Red;
+		FindBall(PixelInt, PixelWidth, PRed, TableMax, TableMin, BallDiameter, RBallMin, RBallMax);
+		struct coordinate Yellow = {-1, -1, -1};
+		struct coordinate *PYellow = &Yellow;
+		FindBall(PixelInt, PixelWidth, PYellow, TableMax, TableMin, BallDiameter, YBallMin, YBallMax);
+		struct coordinate White = {-1, -1, -1};
+		struct coordinate *PWhite = &White;
+		FindBall(PixelInt, PixelWidth, PWhite, TableMax, TableMin, BallDiameter, WBallMin, WBallMax);
+		free(PixelInt);
+	/*Check if the balls are all here*/
+		if(Red.X < 0){
+			fprintf(stderr, "Error : red ball missing\n");
+			exit(EXIT_FAILURE);
+		}
+		if(Yellow.X < 0){
+			fprintf(stderr, "Error : yellow ball missing\n");
+			exit(EXIT_FAILURE);
+		}
+		if(White.X < 0){
+			fprintf(stderr, "Error : white ball missing\n");
+			exit(EXIT_FAILURE);
+		}
+	/*Open and write in Pos.txt*/
+		FILE *PosTxt;
+		PosTxt = fopen("Pos.txt", "w");
+		if(PosTxt == NULL){
+			perror("Error : couldn't open Pos.txt");
+			exit(EXIT_FAILURE);
+		}
+		if(1 > fprintf(PosTxt, "Red:%d,%d,%d\nYellow:%d,%d,%d\nWhite:%d,%d,%d", Red.X, Red.Y, Red.Score, Yellow.X, Yellow.Y, Yellow.Score, White.X, White.Y, White.Score)){
+			fprintf(stderr, "Error : couldn't write in Pos.txt\n");
+			int err = ferror(PosTxt);
+			if(err){
+				fprintf(stderr, "Cause: error %d\n", err);
+				clearerr(PosTxt);
 			}
 		}
-		return score;
+		if(fclose(PosTxt)) perror("Error: couldn't close Pos.txt");
 
-	} else if(mode=='c') {
-
-		//Verifying that all the area we will check for is within the limits of the image
-		if (index%imageWidth >= imageWidth-1 || index/imageWidth >= imageHeight-1 || index%imageWidth <= 0 || index/imageWidth <= 0) {
-			printf("Error : trying to get score too close to image limits, trying to access pixels outside image\n");
-			return -1;
-		};
-
-		pixColor = intToColor(pixMap[index]);
-		if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
-		pixColor = intToColor(pixMap[index+1]);
-		if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
-		pixColor = intToColor(pixMap[index-1]);
-		if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
-		pixColor = intToColor(pixMap[index+imageWidth]);
-		if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
-		pixColor = intToColor(pixMap[index-imageWidth]);
-		if (pixColor.red >= minRange.red && pixColor.red <= maxRange.red && pixColor.green >= minRange.green && pixColor.green <= maxRange.green && pixColor.blue >= minRange.blue && pixColor.blue <= maxRange.blue) score++;
-
-		return score;
-	} else {
-		printf("Error : invalid functionning mode for getScore");
-		return -1;
-	}
+	exit(EXIT_SUCCESS);
 }
 
-struct vectPlus convergence(unsigned int *pixMap, int index, struct color minRange, struct color maxRange, int imageHeight, int imageWidth, int ballDiameter) {
 
-	int scoreUpdate;
-	struct vectPlus outVect = {0,0,0};
 
-	outVect.score = getScore(pixMap,index,minRange,maxRange,imageHeight,imageWidth,ballDiameter,'s');
 
-	scoreUpdate = getScore(pixMap,index+1,minRange,maxRange,imageHeight,imageWidth,ballDiameter,'s');
-	if (scoreUpdate > outVect.score) {
-		return convergence(pixMap,index+1,minRange,maxRange,imageHeight,imageWidth,ballDiameter);
-	}
 
-	scoreUpdate = getScore(pixMap,index-1,minRange,maxRange,imageHeight,imageWidth,ballDiameter,'s');
-	if (scoreUpdate > outVect.score) {
-		return convergence(pixMap,index-1,minRange,maxRange,imageHeight,imageWidth,ballDiameter);
-	}
 
-	scoreUpdate = getScore(pixMap,index+imageWidth,minRange,maxRange,imageHeight,imageWidth,ballDiameter,'s');
-	if (scoreUpdate > outVect.score) {
-		return convergence(pixMap,index+imageWidth,minRange,maxRange,imageHeight,imageWidth,ballDiameter);
-	}
 
-	scoreUpdate = getScore(pixMap,index-imageWidth,minRange,maxRange,imageHeight,imageWidth,ballDiameter,'s');
-	if (scoreUpdate > outVect.score) {
-		return convergence(pixMap,index-imageWidth,minRange,maxRange,imageHeight,imageWidth,ballDiameter);
-	}
 
-	outVect.x = index%imageWidth;
-	outVect.y = index/imageWidth;
-
-	return outVect;
-
-}
