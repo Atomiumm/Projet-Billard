@@ -272,7 +272,7 @@ int main(int argc, char **argv){
 		int PixelWidth = 0;
 		int PixelHeight = 0;
 		FILE *PixmapBin;
-		PixmapBin = fopen("Pixmap14.bin", "rb");
+		PixmapBin = fopen("Pixmap.bin", "rb");
 		if(PixmapBin == NULL){
 			perror("Error : couldn't open Pixmap.bin");
 			exit(EXIT_FAILURE);
