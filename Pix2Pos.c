@@ -188,10 +188,7 @@ void FindBall(unsigned int *PixelInt, int PixelWidth, struct coordinate *PBall, 
 
 /*Main*/
 int main(int argc, char **argv){
-	struct timespec requestStart, requestEnd;
-	clock_gettime(CLOCK_REALTIME, &requestStart);
-
-
+	
 	/*Variable Declaration*/
 		struct coordinate TableMin;
 		struct coordinate TableMax;
