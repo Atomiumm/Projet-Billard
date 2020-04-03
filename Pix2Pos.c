@@ -173,11 +173,18 @@ void FindBall(unsigned int *PixelInt, int PixelWidth, struct coordinate *PBall, 
 							PBall->Y = Tile.Y;
 							PBall->Score = Tile.Score;
 						}
-						else if(abs(PBall->X - Tile.X) > BallDiameter/2 || abs(PBall->Y - Tile.Y) > BallDiameter/2){
-							fprintf(stderr, "Error : multiple balls in range: %d,%d,%d : %d,%d,%d, cannot continue\n", RangeMin.R, RangeMin.G, RangeMin.B, RangeMax.R,RangeMax.G,RangeMax.B);
-							//fprintf(stderr, "Ball1: %d,%d:%d; Ball2: %d,%d:%d", PBall->X, PBall->Y, PBall->Score, Tile.X, Tile.Y, Tile.Score);		
-							free(PixelInt);
-							exit(EXIT_FAILURE);
+						else if(abs(PBall->X - Tile.X) > BallDiameter || abs(PBall->Y - Tile.Y) > BallDiameter){
+							if(PBall->Score + BallDiameter*BallDiameter/10 < Tile.Score){
+								PBall->X = Tile.X;
+								PBall->Y = Tile.Y;
+								PBall->Score = Tile.Score;
+							}
+							else if(Tile.Score + BallDiameter*BallDiameter/10 > PBall->Score){
+								fprintf(stderr, "Error : multiple balls in range: %d,%d,%d : %d,%d,%d, cannot continue\n", RangeMin.R, RangeMin.G, RangeMin.B, RangeMax.R,RangeMax.G,RangeMax.B);
+								fprintf(stderr, "Ball1: %d,%d:%d; Ball2: %d,%d:%d", PBall->X, PBall->Y, PBall->Score, Tile.X, Tile.Y, Tile.Score);		
+								free(PixelInt);
+								exit(EXIT_FAILURE);
+							}
 						}
 					}
 				}
