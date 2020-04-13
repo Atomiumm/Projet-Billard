@@ -18,6 +18,11 @@ struct colour {
 	signed short int B;
 };
 
+struct colourRange {
+	struct colour Min;
+	struct colour Max;
+};
+
 struct coordinate {
 	signed short int X;
 	signed short int Y;
@@ -46,34 +51,34 @@ struct colour Int2Colour(int ColourInt) {
 	return ColourRGB;
 }
 	/*Calculating the amount of pixels that correspond to the given range.	The last parameter (mode) can be two -> very fast calculation or one -> fast calculation or 0 -> precise calculation*/
-int GetScore(unsigned int *PixelInt, int PixelWidth, struct coordinate Coordinates, int DeltaX, int DeltaY, struct colour RangeMin, struct colour RangeMax, short int Mode){
+int GetScore(unsigned int *PixelInt, int PixelWidth, struct coordinate Coordinates, int DeltaX, int DeltaY, struct colourRange Range, short int Mode){
 	int Score = 0;
 	if(Mode == 2){
 		struct colour PixelColour = Int2Colour(PixelInt[(Coordinates.X + DeltaX/4) + (Coordinates.Y + DeltaY/4)*PixelWidth]);
 		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", (Coordinates.X + DeltaX/4)+(Coordinates.Y + DeltaY/4)*PixelWidth);
-		if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
+		if(PixelColour.R >= Range.Min.R && PixelColour.R <= Range.Max.R && PixelColour.G >= Range.Min.G && PixelColour.G <= Range.Max.G && PixelColour.B >= Range.Min.B && PixelColour.B <= Range.Max.B) Score++;
 		PixelColour = Int2Colour(PixelInt[(Coordinates.X + 3*DeltaX/4) + (Coordinates.Y + DeltaY/4)*PixelWidth]);
 		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", (Coordinates.X + 3*DeltaX/4)+(Coordinates.Y + DeltaY/4)*PixelWidth);
-		if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
+		if(PixelColour.R >= Range.Min.R && PixelColour.R <= Range.Max.R && PixelColour.G >= Range.Min.G && PixelColour.G <= Range.Max.G && PixelColour.B >= Range.Min.B && PixelColour.B <= Range.Max.B) Score++;
 		PixelColour = Int2Colour(PixelInt[(Coordinates.X + DeltaX/4) + (Coordinates.Y + 3*DeltaY/4)*PixelWidth]);
 		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", (Coordinates.X + DeltaX/4)+(Coordinates.Y + 3*DeltaY/4)*PixelWidth);
-		if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
+		if(PixelColour.R >= Range.Min.R && PixelColour.R <= Range.Max.R && PixelColour.G >= Range.Min.G && PixelColour.G <= Range.Max.G && PixelColour.B >= Range.Min.B && PixelColour.B <= Range.Max.B) Score++;
 		PixelColour = Int2Colour(PixelInt[(Coordinates.X + 3*DeltaX/4) + (Coordinates.Y + 3*DeltaY/4)*PixelWidth]);
 		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", (Coordinates.X + 3*DeltaX/4)+(Coordinates.Y + 3*DeltaY/4)*PixelWidth);
-		if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
+		if(PixelColour.R >= Range.Min.R && PixelColour.R <= Range.Max.R && PixelColour.G >= Range.Min.G && PixelColour.G <= Range.Max.G && PixelColour.B >= Range.Min.B && PixelColour.B <= Range.Max.B) Score++;
 	}
 	else if(Mode == 1){
 		int x = Coordinates.X + DeltaX/2;
 		for(int y = Coordinates.Y; y < Coordinates.Y + DeltaY; y++){
 			struct colour PixelColour = Int2Colour(PixelInt[x + y*PixelWidth]);
 			if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", x + y*PixelWidth);
-			if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
+			if(PixelColour.R >= Range.Min.R && PixelColour.R <= Range.Max.R && PixelColour.G >= Range.Min.G && PixelColour.G <= Range.Max.G && PixelColour.B >= Range.Min.B && PixelColour.B <= Range.Max.B) Score++;
 		}
 		int y = Coordinates.Y + DeltaY/2;
 		for(int x = Coordinates.X; x < Coordinates.X + DeltaX; x++){
 			struct colour PixelColour = Int2Colour(PixelInt[x + y*PixelWidth]);
 			if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", x + y*PixelWidth);
-			if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
+			if(PixelColour.R >= Range.Min.R && PixelColour.R <= Range.Max.R && PixelColour.G >= Range.Min.G && PixelColour.G <= Range.Max.G && PixelColour.B >= Range.Min.B && PixelColour.B <= Range.Max.B) Score++;
 		}
 	}
 	else{
@@ -81,77 +86,77 @@ int GetScore(unsigned int *PixelInt, int PixelWidth, struct coordinate Coordinat
 			for(int y = Coordinates.Y; y < Coordinates.Y + DeltaY; y++){
 				struct colour PixelColour = Int2Colour(PixelInt[x + y*PixelWidth]);
 				if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", x + y*PixelWidth);
-				if(PixelColour.R >= RangeMin.R && PixelColour.R <= RangeMax.R && PixelColour.G >= RangeMin.G && PixelColour.G <= RangeMax.G && PixelColour.B >= RangeMin.B && PixelColour.B <= RangeMax.B) Score++;
+				if(PixelColour.R >= Range.Min.R && PixelColour.R <= Range.Max.R && PixelColour.G >= Range.Min.G && PixelColour.G <= Range.Max.G && PixelColour.B >= Range.Min.B && PixelColour.B <= Range.Max.B) Score++;
 			}
 		}
 	}
 	return Score;
 }
 	/*Converging to a better position*/
-void Converge(unsigned int *PixelInt, int PixelWidth, struct coordinate *PCoordinate, int BallDiameter, struct colour RangeMin, struct colour RangeMax){
+void Converge(unsigned int *PixelInt, int PixelWidth, struct coordinate *PCoordinate, int BallDiameter, struct colourRange Range){
 	PCoordinate->X++;
-	int tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 1);
+	int tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, Range, 1);
 	if(tempscore > PCoordinate->Score){
 		PCoordinate->Score = tempscore;
-		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, Range);
 		return;
 	}
 	PCoordinate->X-=2;
-	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 1);
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, Range, 1);
 	if(tempscore > PCoordinate->Score){
 		PCoordinate->Score = tempscore;
-		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, Range);
 		return;
 	}
 	PCoordinate->X++;
 	PCoordinate->Y++;
-	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 1);
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, Range, 1);
 	if(tempscore > PCoordinate->Score){
 		PCoordinate->Score = tempscore;
-		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, Range);
 		return;
 	}
 	PCoordinate->Y-=2;
-	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 1);
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, Range, 1);
 	if(tempscore > PCoordinate->Score){
 		PCoordinate->Score = tempscore;
-		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, Range);
 		return;
 	}
 	PCoordinate->Y++;
 	PCoordinate->X++;
-	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 0);
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, Range, 0);
 	if(tempscore > PCoordinate->Score){
 		PCoordinate->Score = tempscore;
-		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, Range);
 		return;
 	}
 	PCoordinate->X-=2;
-	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 0);
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, Range, 0);
 	if(tempscore > PCoordinate->Score){
 		PCoordinate->Score = tempscore;
-		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, Range);
 		return;
 	}
 	PCoordinate->X++;
 	PCoordinate->Y++;
-	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 0);
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, Range, 0);
 	if(tempscore > PCoordinate->Score){
 		PCoordinate->Score = tempscore;
-		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, Range);
 		return;
 	}
 	PCoordinate->Y-=2;
-	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, RangeMin, RangeMax, 0);
+	tempscore = GetScore(PixelInt, PixelWidth, *(PCoordinate), BallDiameter, BallDiameter, Range, 0);
 	if(tempscore > PCoordinate->Score){
 		PCoordinate->Score = tempscore;
-		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, RangeMin, RangeMax);
+		Converge(PixelInt, PixelWidth, PCoordinate, BallDiameter, Range);
 		return;
 	}
 	PCoordinate->Y++;
 }
 	/*Finding the balls*/
-void FindBall(unsigned int *PixelInt, int PixelWidth, struct coordinate *PBall, struct coordinate TableMax, struct coordinate TableMin, short signed int BallDiameter, struct colour RangeMin, struct colour RangeMax){
+void FindBall(unsigned int *PixelInt, int PixelWidth, struct coordinate *PBall, struct coordinate TableMax, struct coordinate TableMin, short signed int BallDiameter, struct colourRange Range){
 	struct coordinate TileAmount;
 	TileAmount.X = (TableMax.X-TableMin.X) / BallDiameter + ((TableMax.X-TableMin.X) % BallDiameter == 0 ? 0: 1);
 	TileAmount.Y = (TableMax.Y-TableMin.Y) / BallDiameter + ((TableMax.Y-TableMin.Y) % BallDiameter == 0 ? 0: 1);
@@ -162,29 +167,22 @@ void FindBall(unsigned int *PixelInt, int PixelWidth, struct coordinate *PBall, 
 			int x = TableMin.X + TileX*BallDiameter;
 			if(x+BallDiameter > TableMax.X) x -= x + BallDiameter - TableMax.X;
 			struct coordinate Tile = {x, y, 0};
-			if(GetScore(PixelInt, PixelWidth, Tile, BallDiameter, BallDiameter, RangeMin, RangeMax, 2)){
-				if(GetScore(PixelInt, PixelWidth, Tile, BallDiameter, BallDiameter, RangeMin, RangeMax, 0) > BallDiameter*BallDiameter/5){
+			if(GetScore(PixelInt, PixelWidth, Tile, BallDiameter, BallDiameter, Range, 2)){
+				if(GetScore(PixelInt, PixelWidth, Tile, BallDiameter, BallDiameter, Range, 0) > BallDiameter*BallDiameter/5){
 					struct coordinate *PTile = &Tile;
-					PTile->Score = GetScore(PixelInt, PixelWidth, Tile, BallDiameter, BallDiameter, RangeMin, RangeMax, 1);
-					Converge(PixelInt, PixelWidth, PTile, BallDiameter, RangeMin, RangeMax);
+					PTile->Score = GetScore(PixelInt, PixelWidth, Tile, BallDiameter, BallDiameter, Range, 1);
+					Converge(PixelInt, PixelWidth, PTile, BallDiameter, Range);
 					if(Tile.Score > 7*BallDiameter*BallDiameter/10){
 						if(PBall->X < 0){
 							PBall->X = Tile.X;
 							PBall->Y = Tile.Y;
 							PBall->Score = Tile.Score;
 						}
-						else if(abs(PBall->X - Tile.X) > BallDiameter || abs(PBall->Y - Tile.Y) > BallDiameter){
-							if(PBall->Score + BallDiameter*BallDiameter/10 < Tile.Score){
-								PBall->X = Tile.X;
-								PBall->Y = Tile.Y;
-								PBall->Score = Tile.Score;
-							}
-							else if(Tile.Score + BallDiameter*BallDiameter/10 > PBall->Score){
-								fprintf(stderr, "Error : multiple balls in range: %d,%d,%d : %d,%d,%d, cannot continue\n", RangeMin.R, RangeMin.G, RangeMin.B, RangeMax.R,RangeMax.G,RangeMax.B);
-								fprintf(stderr, "Ball1: %d,%d:%d; Ball2: %d,%d:%d", PBall->X, PBall->Y, PBall->Score, Tile.X, Tile.Y, Tile.Score);		
-								free(PixelInt);
-								exit(EXIT_FAILURE);
-							}
+						else if(abs(PBall->X - Tile.X) > BallDiameter/2 || abs(PBall->Y - Tile.Y) > BallDiameter/2){
+							fprintf(stderr, "Error : multiple balls in range: %d,%d,%d : %d,%d,%d, cannot continue\n", Range.Min.R, Range.Min.G, Range.Min.B, Range.Max.R,Range.Max.G,Range.Max.B);
+							//fprintf(stderr, "Ball1: %d,%d:%d; Ball2: %d,%d:%d", PBall->X, PBall->Y, PBall->Score, Tile.X, Tile.Y, Tile.Score);		
+							free(PixelInt);
+							exit(EXIT_FAILURE);
 						}
 					}
 				}
@@ -201,14 +199,10 @@ int main(int argc, char **argv){
 	/*Variable Declaration*/
 		struct coordinate TableMin;
 		struct coordinate TableMax;
-		struct colour RBallMin;
-		struct colour RBallMax;
-		struct colour YBallMin;
-		struct colour YBallMax;
-		struct colour WBallMin;
-		struct colour WBallMax;
-		struct colour BGMin;
-		struct colour BGMax;
+		struct colourRange RBall;
+		struct colourRange YBall;
+		struct colourRange WBall;
+		struct colourRange BG;
 		short signed int BallDiameter;
 	/*Reads arguments*/
 		if(argc == 30){
@@ -216,30 +210,30 @@ int main(int argc, char **argv){
 			TableMax.Y   = atoi(argv[2]);
 			TableMin.X   = atoi(argv[3]);
 			TableMax.X   = atoi(argv[4]);
-			RBallMin.R   = atoi(argv[5]);
-			RBallMax.R   = atoi(argv[6]);
-			RBallMin.G   = atoi(argv[7]);
-			RBallMax.G   = atoi(argv[8]);
-			RBallMin.B   = atoi(argv[9]);
-			RBallMax.B   = atoi(argv[10]);
-			YBallMin.R   = atoi(argv[11]);
-			YBallMax.R   = atoi(argv[12]);
-			YBallMin.G   = atoi(argv[13]);
-			YBallMax.G   = atoi(argv[14]);
-			YBallMin.B   = atoi(argv[15]);
-			YBallMax.B   = atoi(argv[16]);
-			WBallMin.R   = atoi(argv[17]);
-			WBallMax.R   = atoi(argv[18]);
-			WBallMin.G   = atoi(argv[19]);
-			WBallMax.G   = atoi(argv[20]);
-			WBallMin.B   = atoi(argv[21]);
-			WBallMax.B   = atoi(argv[22]);
-			BGMin.R      = atoi(argv[23]);
-			BGMax.R      = atoi(argv[24]);
-			BGMin.G      = atoi(argv[25]);
-			BGMax.G      = atoi(argv[26]);
-			BGMin.B      = atoi(argv[27]);
-			BGMax.B      = atoi(argv[28]);
+			RBall.Min.R   = atoi(argv[5]);
+			RBall.Max.R   = atoi(argv[6]);
+			RBall.Min.G   = atoi(argv[7]);
+			RBall.Max.G   = atoi(argv[8]);
+			RBall.Min.B   = atoi(argv[9]);
+			RBall.Max.B   = atoi(argv[10]);
+			YBall.Min.R   = atoi(argv[11]);
+			YBall.Max.R   = atoi(argv[12]);
+			YBall.Min.G   = atoi(argv[13]);
+			YBall.Max.G   = atoi(argv[14]);
+			YBall.Min.B   = atoi(argv[15]);
+			YBall.Max.B   = atoi(argv[16]);
+			WBall.Min.R   = atoi(argv[17]);
+			WBall.Max.R   = atoi(argv[18]);
+			WBall.Min.G   = atoi(argv[19]);
+			WBall.Max.G   = atoi(argv[20]);
+			WBall.Min.B   = atoi(argv[21]);
+			WBall.Max.B   = atoi(argv[22]);
+			BG.Min.R      = atoi(argv[23]);
+			BG.Max.R      = atoi(argv[24]);
+			BG.Min.G      = atoi(argv[25]);
+			BG.Max.G      = atoi(argv[26]);
+			BG.Min.B      = atoi(argv[27]);
+			BG.Max.B      = atoi(argv[28]);
 			BallDiameter = atoi(argv[29]);
 		}
 		else {
@@ -252,19 +246,19 @@ int main(int argc, char **argv){
 			fprintf(stderr, "Error : invalid values passed as table size, cannot continue\n");
 			ErrorFlag = 1;
 		}
-		if(RBallMin.R > RBallMax.R || RBallMin.G > RBallMax.G || RBallMin.B > RBallMax.B || RBallMin.R < 0 || RBallMin.G < 0 || RBallMin.B < 0){
+		if(RBall.Min.R > RBall.Max.R || RBall.Min.G > RBall.Max.G || RBall.Min.B > RBall.Max.B || RBall.Min.R < 0 || RBall.Min.G < 0 || RBall.Min.B < 0){
 			fprintf(stderr, "Error : invalid values passed as red ball colour range, cannot continue\n");
 			ErrorFlag = 1;
 		}
-		if(YBallMin.R > YBallMax.R || YBallMin.G > YBallMax.G || YBallMin.B > YBallMax.B || YBallMin.R < 0 || YBallMin.G < 0 || YBallMin.B < 0){
+		if(YBall.Min.R > YBall.Max.R || YBall.Min.G > YBall.Max.G || YBall.Min.B > YBall.Max.B || YBall.Min.R < 0 || YBall.Min.G < 0 || YBall.Min.B < 0){
 			fprintf(stderr, "Error : invalid values passed as yellow ball colour range, cannot continue\n");
 			ErrorFlag = 1;
 		}
-		if(WBallMin.R > WBallMax.R || WBallMin.G > WBallMax.G || WBallMin.B > WBallMax.B || WBallMin.R < 0 || WBallMin.G < 0 || WBallMin.B < 0){
+		if(WBall.Min.R > WBall.Max.R || WBall.Min.G > WBall.Max.G || WBall.Min.B > WBall.Max.B || WBall.Min.R < 0 || WBall.Min.G < 0 || WBall.Min.B < 0){
 			fprintf(stderr, "Error : invalid values passed as white ball colour range, cannot continue\n");
 			ErrorFlag = 1;
 		}
-		if(BGMin.R > BGMax.R || BGMin.G > BGMax.G || BGMin.B > BGMax.B || BGMin.R < 0 || BGMin.G < 0 || BGMin.B < 0){
+		if(BG.Min.R > BG.Max.R || BG.Min.G > BG.Max.G || BG.Min.B > BG.Max.B || BG.Min.R < 0 || BG.Min.G < 0 || BG.Min.B < 0){
 			fprintf(stderr, "Error : invalid values passed as background colour range, cannot continue\n");
 			ErrorFlag = 1;
 		}
@@ -330,13 +324,13 @@ int main(int argc, char **argv){
 	/*Find the balls*/
 		struct coordinate Red = {-1, -1, -1};
 		struct coordinate *PRed = &Red;
-		FindBall(PixelInt, PixelWidth, PRed, TableMax, TableMin, BallDiameter, RBallMin, RBallMax);
+		FindBall(PixelInt, PixelWidth, PRed, TableMax, TableMin, BallDiameter, RBall);
 		struct coordinate Yellow = {-1, -1, -1};
 		struct coordinate *PYellow = &Yellow;
-		FindBall(PixelInt, PixelWidth, PYellow, TableMax, TableMin, BallDiameter, YBallMin, YBallMax);
+		FindBall(PixelInt, PixelWidth, PYellow, TableMax, TableMin, BallDiameter, YBall);
 		struct coordinate White = {-1, -1, -1};
 		struct coordinate *PWhite = &White;
-		FindBall(PixelInt, PixelWidth, PWhite, TableMax, TableMin, BallDiameter, WBallMin, WBallMax);
+		FindBall(PixelInt, PixelWidth, PWhite, TableMax, TableMin, BallDiameter, WBall);
 		free(PixelInt);
 	/*Check if the balls are all here and if they are overlapping*/
 		if(Red.X < 0){
@@ -370,7 +364,7 @@ int main(int argc, char **argv){
 			perror("Error : couldn't open Pos.txt");
 			exit(EXIT_FAILURE);
 		}
-		if(1 > fprintf(PosTxt, "Red:%d,%d,%d\nYellow:%d,%d,%d\nWhite:%d,%d,%d", Red.X, Red.Y, Red.Score, Yellow.X, Yellow.Y, Yellow.Score, White.X, White.Y, White.Score)){
+		if(1 > fprintf(PosTxt, "Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d", Red.X, Red.Y, Red.Score, Yellow.X, Yellow.Y, Yellow.Score, White.X, White.Y, White.Score)){
 			fprintf(stderr, "Error : couldn't write in Pos.txt\n");
 			int err = ferror(PosTxt);
 			if(err){
@@ -382,11 +376,3 @@ int main(int argc, char **argv){
 
 	exit(EXIT_SUCCESS);
 }
-
-
-
-
-
-
-
-
