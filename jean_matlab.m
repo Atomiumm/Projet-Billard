@@ -37,7 +37,7 @@ moving(:,2) = vel_bl(:,3) | vel_bl(:,4);
 moving(:,3) = vel_bl(:,5) | vel_bl(:,6);
 
 moving_ind = find(moving);
-player_ball = min(mod(moving_ind,n_frames));
+player_ball = ceil(min(moving_ind(mod(moving_ind,n_frames)==min(mod(moving_ind,n_frames))))/n_frames);
 fprintf("player ball : \%d\\n",player_ball);
 
 if player_ball == 1
