@@ -12,7 +12,9 @@ ScoreSheet = figure(1);
 
 hold on
 
-plot(pos(:,1),pos(:,2),'r-',pos(:,3),pos(:,4),'y-',pos(:,5),pos(:,6),'k-');
+plot(pos(:,1),pos(:,2),'color',[0.631 0.075 0.004],'lineStyle','%s');
+plot(pos(:,3),pos(:,4),'color',[0.929 0.761 0.016],'lineStyle','%s');
+plot(pos(:,5),pos(:,6),'color',[0.157 0.157 0.235],'lineStyle','%s');
 axis ij
 
 line([x_min x_max],[y_min y_min]);
@@ -29,6 +31,10 @@ n_frames = numel(pos)/6;
 vel = (posright-posleft)/2;
 acc = (posright-2*pos+posleft)/4;
 
+dist(1) = floor(sum(sqrt(vel(2:end-1,1).^2+vel(2:end-1,2).^2)));
+dist(2) = floor(sum(sqrt(vel(2:end-1,3).^2+vel(2:end-1,4).^2)));
+dist(3) = floor(sum(sqrt(vel(2:end-1,5).^2+vel(2:end-1,6).^2)));
+
 velleft=[vel(2:end,:);vel(end,:)];
 velright=[vel(1,:);vel(1:end-1,:)];
 
@@ -38,15 +44,17 @@ moving(:,3) = (pos(:,5)-pos(1,5)).^2 + (pos(:,6)-pos(1,6)).^2 >= 100;
 
 moving_ind = find(moving);
 player_ball = ceil(min(moving_ind(mod(moving_ind-1,n_frames)==min(mod(moving_ind-1,n_frames))))/n_frames);
-fprintf("player ball : \%d\\n",player_ball);
 
 if player_ball == 1
+    player='red';
     ball_a = 2;
     ball_b = 3;
 elseif player_ball == 2
+    player='yellow';
     ball_a = 1;
     ball_b = 3;
 else
+    player='white';
     player_ball = 3;
     ball_a = 1;
     ball_b = 2;
@@ -82,31 +90,68 @@ band_touch=find(band_touch_left | band_touch_right | band_touch_up | band_touch_
 ball_touch_a = find(ball_touch_a);
 ball_touch_b = find(ball_touch_b);
 
-plot(pos(band_touch,2*player_ball-1),pos(band_touch,2*player_ball),'*');
-plot(pos(ball_touch_a,2*player_ball-1),pos(ball_touch_a,2*player_ball),'o');
-plot(pos(ball_touch_b,2*player_ball-1),pos(ball_touch_b,2*player_ball),'o');
+plot(pos(band_touch,2*player_ball-1),pos(band_touch,2*player_ball),'sq','lineStyle','none','color',%s);
+plot(pos(ball_touch_a,2*player_ball-1),pos(ball_touch_a,2*player_ball),'o','lineStyle','none','color',%s);
+plot(pos(ball_touch_b,2*player_ball-1),pos(ball_touch_b,2*player_ball),'o','lineStyle','none','color',%s);
 
 win = 0;
 
-if numel(ball_touch_a)==0 || numel(ball_touch_b)==0 || numel(band_touch)<3
-    fprintf("win : \%d\\n",win);
-    saveas(ScoreSheet,'ScoreSheet','pdf');
-    return
+if numel(ball_touch_a) && numel(ball_touch_b) && numel(band_touch)>=3
+    if max(ball_touch_a) < min(ball_touch_b)
+        band_touch = band_touch(band_touch>max(ball_touch_a) & band_touch<min(ball_touch_b));
+        if numel(band_touch)>=3
+            win = 1;
+        end
+    else
+        band_touch = band_touch(band_touch>max(ball_touch_b) & band_touch<min(ball_touch_a));
+        if numel(band_touch)>=3
+            win = 1;
+        end
+    end
 end
 
-if max(ball_touch_a) < min(ball_touch_b)
-    band_touch = band_touch(band_touch>max(ball_touch_a) & band_touch<min(ball_touch_b));
-    if numel(band_touch)>=3
-        win = 1;
-    end
+if numel(ball_touch_a) && numel(ball_touch_b)
+    balls_touched_t = "2 balls touched";
+elseif numel(ball_touched_a) || numel(ball_touch_b)
+    balls_touched_t = "1 ball touched";
 else
-    band_touch = band_touch(band_touch>max(ball_touch_b) & band_touch<min(ball_touch_a));
-    if numel(band_touch)>=3
-        win = 1;
-    end
+    balls_touched_t = "No ball touched";
 end
 
-fprintf("win : \%d\\n",win);
+if numel(band_touch) >= 2
+    band_touched_t = sprintf("\%d bands touched",numel(band_touch));
+elseif numel(band_touch) == 1
+    band_touched_t = "1 band touched";
+else
+    band_touched_t = "No band touched";
+end
+
+if win
+    win_mess = "You won. You're wonderful <3";
+else
+    win_mess = "You lost. You litte shit.";
+end
+
+text_to_display = {sprintf("Scores for player \%s",player),balls_touched_t,band_touched_t,sprintf("dist(r) = \%dpx",dist(1)),sprintf("dist(y) = \%dpx",dist(2)),sprintf("dist(w) = \%dpx",dist(3)),win_mess};
+x_text = x_min + [1 13 13 1 7 13 1]*(x_max-x_min)/18;
+y_text = y_max + [14 14 43 72 72 72 43];
+text(x_text,y_text,text_to_display);
+
+time_t = floor(clock);
+scoresheet_title = sprintf('Scores Sheet - %s - \%s \%dh\%dmin\%ds',date,time_t(4:6));
+sgtitle(scoresheet_title)
+
+axis([x_min-5 x_max+5 y_min-5 y_max+100]);
+set(gca,'visible','off');
+set(gca,'xtick',[]);
+
+set(gcf, 'PaperUnits', 'centimeters', 'Units', 'centimeters');
+set(gcf, 'PaperSize', [29.7 21]);
+set(gcf, 'Position', [0.5 0.5 28.7 20]);
+
 saveas(ScoreSheet,'ScoreSheet','pdf');
+open('ScoreSheet.pdf');
+
+clc;clear;
 
 return
