@@ -31,11 +31,11 @@
 
 
 /*Structure declaration*/
-	typedef struct colour {short int R, G, B;} colour;
+	typedef struct colour {int R, G, B;} colour;
 
 	typedef struct colourRange {struct colour Min, Max;} colourRange;
 
-	typedef struct coordinate {short int X, Y, Score;} coordinate;
+	typedef struct coordinate {int X, Y, Score;} coordinate;
 
 	typedef struct coordinateRange {struct coordinate Min, Max;} coordinateRange;
 
@@ -44,21 +44,21 @@
 
 
 /*Function declaration*/
-	int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, short int *BallDiameter);
+	int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter);
 
 	int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file);
 
-	coordinateRange buildNeighbourhood(coordinate Ball, coordinateRange Table, int size, int BallDiameter);
+	coordinateRange buildNeighbourhood(coordinate *Center, coordinateRange *Limits, int size, int Offset);
 
 	colour Int2Colour(int ColourInt);
 
-	int CheckColour(int pixel, int index, colourRange Range);
+	int CheckColour(int pixel, int index, colourRange *Range);
 
-	int GetScore(pixmap Pixels, coordinate Coordinates, int Delta, colourRange Range, short int Mode);
+	int GetScore(pixmap *Pixels, coordinate *Coordinates, int Delta, colourRange *Range, int Mode);
 
-	void Converge(pixmap Pixels, coordinate *PCoordinate, int BallDiameter, colourRange Range);
+	void Converge(pixmap *Pixels, coordinate *PCoordinate, int SquareSize, colourRange *Range);
 
-	void FindBall(pixmap Pixels, coordinate *PBall, coordinateRange Table, short int BallDiameter, colourRange Range);
+	void FindBall(pixmap *Pixels, coordinate *PBall, coordinateRange *Table, int BallDiameter, colourRange *Range);
 
 
 
@@ -75,14 +75,11 @@ int main(int argc, char **argv){
 		colourRange YBall;
 		colourRange WBall;
 		colourRange BG;
-		short int BallDiameter;
+		int BallDiameter;
 		pixmap Pixels;
 		coordinate Red = {-1, -1, -1};
-		coordinate *PRed = &Red;
 		coordinate Yellow = {-1, -1, -1};
-		coordinate *PYellow = &Yellow;
 		coordinate White = {-1, -1, -1};
-		coordinate *PWhite = &White;
 	/*Read arguments*/
 		if(readCommandLine(argc, argv, &Table, &RBall, &YBall, &WBall, &BG, &BallDiameter)) return -1;
 	/*Open Pixmap.bin and verify width and heigth*/
@@ -111,24 +108,24 @@ int main(int argc, char **argv){
 		PosTxt = fopen("Pos.txt", "r");
 		if(PosTxt != NULL){
 			coordinate Temp = {-1, -1, -1};
-			if(3 == fscanf(PosTxt, "Red: %hd, %hd, %hd\n", &(Temp.X), &(Temp.Y), &(Temp.Score))){
-				coordinateRange Neighbourhood = buildNeighbourhood(Temp, Table, 2*BallDiameter, BallDiameter);
-				FindBall(Pixels, PRed, Neighbourhood, BallDiameter, RBall);
+			if(3 == fscanf(PosTxt, "Red: %d, %d, %d\n", &(Temp.X), &(Temp.Y), &(Temp.Score))){
+				coordinateRange Neighbourhood = buildNeighbourhood(&Temp, &Table, 2*BallDiameter, BallDiameter);
+				FindBall(&Pixels, &Red, &Neighbourhood, BallDiameter, &RBall);
 			}
-			if(3 == fscanf(PosTxt, "Yellow: %hd, %hd, %hd\n", &(Temp.X), &(Temp.Y), &(Temp.Score))){
-				coordinateRange Neighbourhood = buildNeighbourhood(Temp, Table, 2*BallDiameter, BallDiameter);
-				FindBall(Pixels, PYellow, Neighbourhood, BallDiameter, YBall);
+			if(3 == fscanf(PosTxt, "Yellow: %d, %d, %d\n", &(Temp.X), &(Temp.Y), &(Temp.Score))){
+				coordinateRange Neighbourhood = buildNeighbourhood(&Temp, &Table, 2*BallDiameter, BallDiameter);
+				FindBall(&Pixels, &Yellow, &Neighbourhood, BallDiameter, &YBall);
 			}
-			if(3 == fscanf(PosTxt, "White: %hd, %hd, %hd\n", &(Temp.X), &(Temp.Y), &(Temp.Score))){
-				coordinateRange Neighbourhood = buildNeighbourhood(Temp, Table, 2*BallDiameter, BallDiameter);
-				FindBall(Pixels, PWhite, Neighbourhood, BallDiameter, WBall);
+			if(3 == fscanf(PosTxt, "White: %d, %d, %d\n", &(Temp.X), &(Temp.Y), &(Temp.Score))){
+				coordinateRange Neighbourhood = buildNeighbourhood(&Temp, &Table, 2*BallDiameter, BallDiameter);
+				FindBall(&Pixels, &White, &Neighbourhood, BallDiameter, &WBall);
 			}
 			if(fclose(PosTxt)) perror("Error: couldn't close Pos.txt");
 		}
 	/*If the balls are not yet found, try to find them on the whole table*/
-		if(Red.Score < 7*BallDiameter*BallDiameter/10) FindBall(Pixels, PRed, Table, BallDiameter, RBall);
-		if(Yellow.Score < 7*BallDiameter*BallDiameter/10) FindBall(Pixels, PYellow, Table, BallDiameter, YBall);
-		if(White.Score < 7*BallDiameter*BallDiameter/10) FindBall(Pixels, PWhite, Table, BallDiameter, WBall);
+		if(Red.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &Red, &Table, BallDiameter, &RBall);
+		if(Yellow.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &Yellow, &Table, BallDiameter, &YBall);
+		if(White.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &White, &Table, BallDiameter, &WBall);
 		free(Pixels.Pixmap);
 	/*Check if the balls are all here and if they are overlapping*/
 		if(Red.Score < 0){
@@ -179,7 +176,7 @@ int main(int argc, char **argv){
 
 
 /*Function initialization*/
-	int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, short int *BallDiameter){
+	__inline int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter){
 		/*
 		 *	Name:				readCommandLine
 		 *
@@ -229,23 +226,23 @@ int main(int argc, char **argv){
 			fprintf(stderr, "Error : invalid number of argument, cannot continue\n");
 			return -1;
 		}
-		if(Table->Min.X > Table->Max.X || Table->Min.Y > Table->Max.Y || Table->Min.X < 0 || Table->Min.Y < 0){
+		if(Table->Min.X < 0 || Table->Min.Y < 0 || Table->Min.X > Table->Max.X || Table->Min.Y > Table->Max.Y){
 			fprintf(stderr, "Error : invalid values passed as table size, cannot continue\n");
 			return -1;
 		}
-		if(RBall->Min.R > RBall->Max.R || RBall->Min.G > RBall->Max.G || RBall->Min.B > RBall->Max.B || RBall->Min.R < 0 || RBall->Min.G < 0 || RBall->Min.B < 0){
+		if(RBall->Min.R < 0 || RBall->Min.G < 0 || RBall->Min.B < 0 || RBall->Min.R > RBall->Max.R || RBall->Min.G > RBall->Max.G || RBall->Min.B > RBall->Max.B){
 			fprintf(stderr, "Error : invalid values passed as red ball colour range, cannot continue\n");
 			return -1;
 		}
-		if(YBall->Min.R > YBall->Max.R || YBall->Min.G > YBall->Max.G || YBall->Min.B > YBall->Max.B || YBall->Min.R < 0 || YBall->Min.G < 0 || YBall->Min.B < 0){
+		if(YBall->Min.R < 0 || YBall->Min.G < 0 || YBall->Min.B < 0 || YBall->Min.R > YBall->Max.R || YBall->Min.G > YBall->Max.G || YBall->Min.B > YBall->Max.B){
 			fprintf(stderr, "Error : invalid values passed as yellow ball colour range, cannot continue\n");
 			return -1;
 		}
-		if(WBall->Min.R > WBall->Max.R || WBall->Min.G > WBall->Max.G || WBall->Min.B > WBall->Max.B || WBall->Min.R < 0 || WBall->Min.G < 0 || WBall->Min.B < 0){
+		if(WBall->Min.R < 0 || WBall->Min.G < 0 || WBall->Min.B < 0 || WBall->Min.R > WBall->Max.R || WBall->Min.G > WBall->Max.G || WBall->Min.B > WBall->Max.B){
 			fprintf(stderr, "Error : invalid values passed as white ball colour range, cannot continue\n");
 			return -1;
 		}
-		if(BG->Min.R > BG->Max.R || BG->Min.G > BG->Max.G || BG->Min.B > BG->Max.B || BG->Min.R < 0 || BG->Min.G < 0 || BG->Min.B < 0){
+		if(BG->Min.R < 0 || BG->Min.G < 0 || BG->Min.B < 0 || BG->Min.R > BG->Max.R || BG->Min.G > BG->Max.G || BG->Min.B > BG->Max.B){
 			fprintf(stderr, "Error : invalid values passed as background colour range, cannot continue\n");
 			return -1;
 		}
@@ -260,7 +257,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 	
-	int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file){
+	__inline int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file){
 		/*
 		 *	Name:				readFile
 		 *
@@ -298,7 +295,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 
-	coordinateRange buildNeighbourhood(coordinate Center, coordinateRange Limits, int size, int Offset){
+	__inline coordinateRange buildNeighbourhood(coordinate *Center, coordinateRange *Limits, int size, int Offset){
 		/*
 		 *	Name:				buildNeighbourhood
 		 *
@@ -313,14 +310,14 @@ int main(int argc, char **argv){
 		 *		Neighbourhood:	Built neighbourhood
 		 */
 		coordinateRange Neighbourhood;
-		Neighbourhood.Min.X = (Center.X - size) < Limits.Min.X ? Limits.Min.X : Center.X - size;
-		Neighbourhood.Max.X = (Center.X + size + Offset) > Limits.Max.X ? Limits.Max.X : Center.X + size + Offset;
-		Neighbourhood.Min.Y = (Center.Y - size) < Limits.Min.Y ? Limits.Min.Y : Center.Y - size;
-		Neighbourhood.Max.Y = (Center.Y + size + Offset) > Limits.Max.Y ? Limits.Max.Y : Center.Y + size + Offset;
+		Neighbourhood.Min.X = (Center->X - size) < Limits->Min.X ? Limits->Min.X : Center->X - size;
+		Neighbourhood.Max.X = (Center->X + size + Offset) > Limits->Max.X ? Limits->Max.X : Center->X + size + Offset;
+		Neighbourhood.Min.Y = (Center->Y - size) < Limits->Min.Y ? Limits->Min.Y : Center->Y - size;
+		Neighbourhood.Max.Y = (Center->Y + size + Offset) > Limits->Max.Y ? Limits->Max.Y : Center->Y + size + Offset;
 		return Neighbourhood;
 	}
 
-	colour Int2Colour(int ColourInt) {
+	__inline colour Int2Colour(int ColourInt) {
 		/*
 		 *	Name:				Int2Colour
 		 *
@@ -343,7 +340,7 @@ int main(int argc, char **argv){
 		return ColourRGB;
 	}
 
-	int CheckColour(int pixel, int index, colourRange Range){
+	__inline int CheckColour(int pixel, int index, colourRange *Range){
 		/*
 		 *	Name:				CheckColour
 		 *
@@ -360,14 +357,14 @@ int main(int argc, char **argv){
 		 */
 		colour PixelColour = Int2Colour(pixel);
 		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", index);
-		if(PixelColour.R >= Range.Min.R && PixelColour.R <= Range.Max.R 
-			&& PixelColour.G >= Range.Min.G && PixelColour.G <= Range.Max.G 
-			&& PixelColour.B >= Range.Min.B && PixelColour.B <= Range.Max.B) 
+		if(PixelColour.R >= Range->Min.R && PixelColour.R <= Range->Max.R 
+			&& PixelColour.G >= Range->Min.G && PixelColour.G <= Range->Max.G 
+			&& PixelColour.B >= Range->Min.B && PixelColour.B <= Range->Max.B) 
 				return 1;
 		else return 0;
 	}
 
-	int GetScore(pixmap Pixels, coordinate Coordinates, int Delta, colourRange Range, short int Mode){
+	int GetScore(pixmap *Pixels, coordinate *Coordinates, int Delta, colourRange *Range, int Mode){
 		/*
 		 *	Name:				GetScore
 		 *
@@ -394,48 +391,64 @@ int main(int argc, char **argv){
 		int Score = 0;
 		if(Mode == 2){
 			int indexes[16] = {
-				(Coordinates.X + Delta/8)+(Coordinates.Y + Delta/8)*Pixels.Width,
-				(Coordinates.X + 3*Delta/8)+(Coordinates.Y + Delta/8)*Pixels.Width,
-				(Coordinates.X + 5*Delta/8)+(Coordinates.Y + Delta/8)*Pixels.Width,
-				(Coordinates.X + 7*Delta/8)+(Coordinates.Y + Delta/8)*Pixels.Width,
-				(Coordinates.X + Delta/8)+(Coordinates.Y + 3*Delta/8)*Pixels.Width,
-				(Coordinates.X + 3*Delta/8)+(Coordinates.Y + 3*Delta/8)*Pixels.Width,
-				(Coordinates.X + 5*Delta/8)+(Coordinates.Y + 3*Delta/8)*Pixels.Width,
-				(Coordinates.X + 7*Delta/8)+(Coordinates.Y + 3*Delta/8)*Pixels.Width,
-				(Coordinates.X + Delta/8)+(Coordinates.Y + 5*Delta/8)*Pixels.Width,
-				(Coordinates.X + 3*Delta/8)+(Coordinates.Y + 5*Delta/8)*Pixels.Width,
-				(Coordinates.X + 5*Delta/8)+(Coordinates.Y + 5*Delta/8)*Pixels.Width,
-				(Coordinates.X + 7*Delta/8)+(Coordinates.Y + 5*Delta/8)*Pixels.Width,
-				(Coordinates.X + Delta/8)+(Coordinates.Y + 7*Delta/8)*Pixels.Width,
-				(Coordinates.X + 3*Delta/8)+(Coordinates.Y + 7*Delta/8)*Pixels.Width,
-				(Coordinates.X + 5*Delta/8)+(Coordinates.Y + 7*Delta/8)*Pixels.Width,
-				(Coordinates.X + 7*Delta/8)+(Coordinates.Y + 7*Delta/8)*Pixels.Width,
+				//(Coordinates->X + Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+				//(Coordinates->X + Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+				//(Coordinates->X + Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+				//(Coordinates->X + Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+				(Coordinates->X + (Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
+				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
+				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
 			};
 			for(int* index = indexes; index < indexes+16; index++){
-				Score += CheckColour(Pixels.Pixmap[*index], *index, Range);
+				Score += CheckColour(Pixels->Pixmap[*index], *index, Range);
 			}
 		}
 		else if(Mode == 1){
-			int x = Coordinates.X + Delta/2;
-			for(int y = Coordinates.Y; y < Coordinates.Y + Delta; y++){
-				Score += CheckColour(Pixels.Pixmap[x + y*Pixels.Width], x + y*Pixels.Width, Range);
+			int x = Coordinates->X + Delta/2;
+			for(int y = Coordinates->Y; y < Coordinates->Y + Delta; y++){
+				Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
 			}
-			int y = Coordinates.Y + Delta/2;
-			for(int x = Coordinates.X; x < Coordinates.X + Delta; x++){
-				Score += CheckColour(Pixels.Pixmap[x + y*Pixels.Width], x + y*Pixels.Width, Range);
+			int y = Coordinates->Y + Delta/2;
+			for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
+				Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
 			}
 		}
 		else{
-			for(int x = Coordinates.X; x < Coordinates.X + Delta; x++){
-				for(int y = Coordinates.Y; y < Coordinates.Y + Delta; y++){
-					Score += CheckColour(Pixels.Pixmap[x + y*Pixels.Width], x + y*Pixels.Width, Range);
+			for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
+				for(int y = Coordinates->Y; y < Coordinates->Y + Delta; y++){
+					Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
 				}
 			}
 		}
 		return Score;
 	}
 
-	void Converge(pixmap Pixels, coordinate *PCoordinate, int SquareSize, colourRange Range){
+	void Converge(pixmap *Pixels, coordinate *PCoordinate, int SquareSize, colourRange *Range){
 		/*
 		 *	Name:				Converge
 		 *
@@ -457,7 +470,7 @@ int main(int argc, char **argv){
 		};
 		for(int level = 1; level >= 0; level--){
 			for(int i = 4; i--; ){
-				TempCoords[i].Score = GetScore(Pixels, TempCoords[i], SquareSize, Range, level);
+				TempCoords[i].Score = GetScore(Pixels, &TempCoords[i], SquareSize, Range, level);
 				if(TempCoords[i].Score > PCoordinate->Score){
 					*PCoordinate = TempCoords[i];
 					Converge(Pixels, PCoordinate, SquareSize, Range);
@@ -467,7 +480,7 @@ int main(int argc, char **argv){
 		}
 	}
 
-	void FindBall(pixmap Pixels, coordinate *PBall, coordinateRange Table, short int BallDiameter, colourRange Range){
+	void FindBall(pixmap *Pixels, coordinate *PBall, coordinateRange *Table, int BallDiameter, colourRange *Range){
 		/*
 		 *	Name:				FindBall
 		 *
@@ -477,26 +490,25 @@ int main(int argc, char **argv){
 		 *						Makes interesting tiles converge to the best score.
 		 *
 		 *	Inputs:
-		 *		Pixels:			Pointer to store the read data in
-		 *		PBall:			Size of each element to read
-		 *		Table:			Amount of elements to read
-		 *		BallDiameter:	This variable is used to try to read an additional entry to detect if too many entries are in the file.
-		 *		Range:			File to read from
+		 *		Pixels:			Image data
+		 *		PBall:			Pointer t the coordinates of the ball we want to find
+		 *		Table:			Area on which to search
+		 *		BallDiameter:	Size of the ball
+		 *		Range:			Colour range of the ball
 		 */
 		coordinate TileAmount;
-		TileAmount.X = (Table.Max.X-Table.Min.X) / BallDiameter + ((Table.Max.X-Table.Min.X) % BallDiameter == 0 ? 0: 1);
-		TileAmount.Y = (Table.Max.Y-Table.Min.Y) / BallDiameter + ((Table.Max.Y-Table.Min.Y) % BallDiameter == 0 ? 0: 1);
+		TileAmount.X = (Table->Max.X-Table->Min.X) / BallDiameter + ((Table->Max.X-Table->Min.X) % BallDiameter == 0 ? 0: 1);
+		TileAmount.Y = (Table->Max.Y-Table->Min.Y) / BallDiameter + ((Table->Max.Y-Table->Min.Y) % BallDiameter == 0 ? 0: 1);
 		for(int TileY = TileAmount.Y; TileY--; ){
-			int y = Table.Min.Y + TileY*BallDiameter;
-			if(y+BallDiameter > Table.Max.Y) y -= y + BallDiameter - Table.Max.Y;
+			int y = Table->Min.Y + TileY*BallDiameter;
+			if(y+BallDiameter > Table->Max.Y) y -= y + BallDiameter - Table->Max.Y;
 			for(int TileX = TileAmount.X; TileX--; ){
-				int x = Table.Min.X + TileX*BallDiameter;
-				if(x+BallDiameter > Table.Max.X) x -= x + BallDiameter - Table.Max.X;
+				int x = Table->Min.X + TileX*BallDiameter;
+				if(x+BallDiameter > Table->Max.X) x -= x + BallDiameter - Table->Max.X;
 				coordinate Tile = {x, y, 0};
-				if(GetScore(Pixels, Tile, BallDiameter, Range, 2)){
-					coordinate *PTile = &Tile;
-					PTile->Score = GetScore(Pixels, Tile, BallDiameter, Range, 1);
-					Converge(Pixels, PTile, BallDiameter, Range);
+				if(GetScore(Pixels, &Tile, BallDiameter, Range, 2)){
+					Tile.Score = GetScore(Pixels, &Tile, BallDiameter, Range, 1);
+					Converge(Pixels, &Tile, BallDiameter, Range);
 					if(Tile.Score > PBall->Score){
 						PBall->X = Tile.X;
 						PBall->Y = Tile.Y;
