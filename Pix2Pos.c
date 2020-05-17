@@ -44,21 +44,21 @@
 
 
 /*Function declaration*/
-	int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter);
+	static inline int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter);
 
-	int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file);
+	static inline int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file);
 
-	coordinateRange buildNeighbourhood(coordinate *Center, coordinateRange *Limits, int size, int Offset);
+	static inline coordinateRange buildNeighbourhood(coordinate *Center, coordinateRange *Limits, int size, int Offset);
 
-	colour Int2Colour(int ColourInt);
+	static inline colour Int2Colour(int ColourInt);
 
-	int CheckColour(int pixel, int index, colourRange *Range);
+	static inline int CheckColour(int pixel, int index, colourRange *Range);
 
-	int GetScore(pixmap *Pixels, coordinate *Coordinates, int Delta, colourRange *Range, int Mode);
+	static int GetScore(pixmap *Pixels, coordinate *Coordinates, int Delta, colourRange *Range, int Mode);
 
-	void Converge(pixmap *Pixels, coordinate *PCoordinate, int SquareSize, colourRange *Range);
+	static void Converge(pixmap *Pixels, coordinate *PCoordinate, int SquareSize, colourRange *Range);
 
-	void FindBall(pixmap *Pixels, coordinate *PBall, coordinateRange *Table, int BallDiameter, colourRange *Range);
+	static void FindBall(pixmap *Pixels, coordinate *PBall, coordinateRange *Table, int BallDiameter, colourRange *Range);
 
 
 
@@ -82,6 +82,7 @@ int main(int argc, char **argv){
 		coordinate White = {-1, -1, -1};
 	/*Read arguments*/
 		if(readCommandLine(argc, argv, &Table, &RBall, &YBall, &WBall, &BG, &BallDiameter)) return -1;
+		//Ceci est un commentaire qui me permet de fermer cette partie du code
 	/*Open Pixmap.bin and verify width and heigth*/
 		FILE *PixmapBin;
 		PixmapBin = fopen("Pixmap.bin", "rb");
@@ -176,7 +177,7 @@ int main(int argc, char **argv){
 
 
 /*Function initialization*/
-	__inline int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter){
+	static inline int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter){
 		/*
 		 *	Name:				readCommandLine
 		 *
@@ -257,7 +258,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 	
-	__inline int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file){
+	static inline int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file){
 		/*
 		 *	Name:				readFile
 		 *
@@ -295,7 +296,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 
-	__inline coordinateRange buildNeighbourhood(coordinate *Center, coordinateRange *Limits, int size, int Offset){
+	static inline coordinateRange buildNeighbourhood(coordinate *Center, coordinateRange *Limits, int size, int Offset){
 		/*
 		 *	Name:				buildNeighbourhood
 		 *
@@ -317,7 +318,7 @@ int main(int argc, char **argv){
 		return Neighbourhood;
 	}
 
-	__inline colour Int2Colour(int ColourInt) {
+	static inline colour Int2Colour(int ColourInt) {
 		/*
 		 *	Name:				Int2Colour
 		 *
@@ -340,7 +341,7 @@ int main(int argc, char **argv){
 		return ColourRGB;
 	}
 
-	__inline int CheckColour(int pixel, int index, colourRange *Range){
+	static inline int CheckColour(int pixel, int index, colourRange *Range){
 		/*
 		 *	Name:				CheckColour
 		 *
@@ -364,7 +365,7 @@ int main(int argc, char **argv){
 		else return 0;
 	}
 
-	int GetScore(pixmap *Pixels, coordinate *Coordinates, int Delta, colourRange *Range, int Mode){
+	static int GetScore(pixmap *Pixels, coordinate *Coordinates, int Delta, colourRange *Range, int Mode){
 		/*
 		 *	Name:				GetScore
 		 *
@@ -448,7 +449,7 @@ int main(int argc, char **argv){
 		return Score;
 	}
 
-	void Converge(pixmap *Pixels, coordinate *PCoordinate, int SquareSize, colourRange *Range){
+	static void Converge(pixmap *Pixels, coordinate *PCoordinate, int SquareSize, colourRange *Range){
 		/*
 		 *	Name:				Converge
 		 *
@@ -480,7 +481,7 @@ int main(int argc, char **argv){
 		}
 	}
 
-	void FindBall(pixmap *Pixels, coordinate *PBall, coordinateRange *Table, int BallDiameter, colourRange *Range){
+	static void FindBall(pixmap *Pixels, coordinate *PBall, coordinateRange *Table, int BallDiameter, colourRange *Range){
 		/*
 		 *	Name:				FindBall
 		 *
