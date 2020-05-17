@@ -385,45 +385,46 @@ int main(int argc, char **argv){
 		 *						Errorcode
 		 */
 		int Score = 0;
-		if(Mode == 2){
-			int indexes[16] = {
-				(Coordinates->X + Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-				(Coordinates->X + 3*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-				(Coordinates->X + 5*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-				(Coordinates->X + 7*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-				(Coordinates->X + Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-				(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-				(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-				(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-				(Coordinates->X + Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-				(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-				(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-				(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-				(Coordinates->X + Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-				(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-				(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-				(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-			};
-			for(int* index = indexes; index < indexes+16; index++){
-				Score += CheckColour(Pixels->Pixmap[*index], *index, Range);
-			}
-		}
-		else if(Mode == 1){
-			int x = Coordinates->X + Delta/2;
-			for(int y = Coordinates->Y; y < Coordinates->Y + Delta; y++){
-				Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
-			}
-			int y = Coordinates->Y + Delta/2;
-			for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
-				Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
-			}
-		}
-		else{
-			for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
+		switch(Mode){
+			case 2:;
+				int indexes[16] = {
+					(Coordinates->X + Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+					(Coordinates->X + 3*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+					(Coordinates->X + 5*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+					(Coordinates->X + 7*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+					(Coordinates->X + Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+					(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+					(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+					(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+					(Coordinates->X + Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+					(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+					(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+					(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+					(Coordinates->X + Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+					(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+					(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+					(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+				};
+				for(int* index = indexes; index < indexes+16; index++){
+					Score += CheckColour(Pixels->Pixmap[*index], *index, Range);
+				}
+				break;
+			case 1:;
+				int x = Coordinates->X + Delta/2;
 				for(int y = Coordinates->Y; y < Coordinates->Y + Delta; y++){
 					Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
 				}
-			}
+				int y = Coordinates->Y + Delta/2;
+				for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
+					Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
+				}
+				break;
+			default:
+				for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
+					for(int y = Coordinates->Y; y < Coordinates->Y + Delta; y++){
+						Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
+					}
+				}
 		}
 		return Score;
 	}
