@@ -32,6 +32,9 @@ line([x_min x_min],[y_min y_max]);
 line([x_max x_max],[y_min y_max]);
 
 %% detection of the first moving ball to detect player ball, and creation of arrays of interest
+figure(2)
+hold on
+plot(pos,"-")
 
 posleft = [pos;pos(end,:);pos(end,:)];
 posright = [pos(1,:);pos(1,:);pos];
@@ -41,6 +44,10 @@ n_frames = numel(pos)/6;
 
 vel = (posright-posleft)/2;
 acc = (posright-2*pos+posleft)/4;
+
+plot(vel,".")
+plot(acc,"*")
+
 
 dist(1) = floor(sum(sqrt(vel(2:end-1,1).^2+vel(2:end-1,2).^2)));
 dist(2) = floor(sum(sqrt(vel(2:end-1,3).^2+vel(2:end-1,4).^2)));

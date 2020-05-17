@@ -44,31 +44,27 @@
 
 
 /*Function declaration*/
-	static inline int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter);
+	int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter);
+	
+	int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file);
 
-	static inline int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file);
+	coordinateRange buildNeighbourhood(coordinate *Center, coordinateRange *Limits, int size, int Offset);
 
-	static inline coordinateRange buildNeighbourhood(coordinate *Center, coordinateRange *Limits, int size, int Offset);
+	colour Int2Colour(int ColourInt);
 
-	static inline colour Int2Colour(int ColourInt);
+	int CheckColour(int pixel, int index, colourRange *Range);
 
-	static inline int CheckColour(int pixel, int index, colourRange *Range);
+	int GetScore(pixmap *Pixels, coordinate *Coordinates, int Delta, colourRange *Range, int Mode);
 
-	static int GetScore(pixmap *Pixels, coordinate *Coordinates, int Delta, colourRange *Range, int Mode);
+	void Converge(pixmap *Pixels, coordinate *PCoordinate, int SquareSize, colourRange *Range);
 
-	static void Converge(pixmap *Pixels, coordinate *PCoordinate, int SquareSize, colourRange *Range);
-
-	static void FindBall(pixmap *Pixels, coordinate *PBall, coordinateRange *Table, int BallDiameter, colourRange *Range);
-
-
-
-
+	void FindBall(pixmap *Pixels, coordinate *PBall, coordinateRange *Table, int BallDiameter, colourRange *Range);
 	
 
 
 
 /*Main*/
-int main(int argc, char **argv){	
+int main(int argc, char **argv){
 	/*Variable Declaration*/
 		coordinateRange Table;
 		colourRange RBall;
@@ -168,7 +164,6 @@ int main(int argc, char **argv){
 			}
 		}
 		if(fclose(PosTxt)) perror("Error: couldn't close Pos.txt");
-
 	return 0;
 }
 
@@ -177,7 +172,7 @@ int main(int argc, char **argv){
 
 
 /*Function initialization*/
-	static inline int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter){
+	int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter){
 		/*
 		 *	Name:				readCommandLine
 		 *
@@ -258,7 +253,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 	
-	static inline int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file){
+	int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file){
 		/*
 		 *	Name:				readFile
 		 *
@@ -296,7 +291,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 
-	static inline coordinateRange buildNeighbourhood(coordinate *Center, coordinateRange *Limits, int size, int Offset){
+	coordinateRange buildNeighbourhood(coordinate *Center, coordinateRange *Limits, int size, int Offset){
 		/*
 		 *	Name:				buildNeighbourhood
 		 *
@@ -318,7 +313,7 @@ int main(int argc, char **argv){
 		return Neighbourhood;
 	}
 
-	static inline colour Int2Colour(int ColourInt) {
+	colour Int2Colour(int ColourInt) {
 		/*
 		 *	Name:				Int2Colour
 		 *
@@ -341,7 +336,7 @@ int main(int argc, char **argv){
 		return ColourRGB;
 	}
 
-	static inline int CheckColour(int pixel, int index, colourRange *Range){
+	int CheckColour(int pixel, int index, colourRange *Range){
 		/*
 		 *	Name:				CheckColour
 		 *
@@ -365,7 +360,7 @@ int main(int argc, char **argv){
 		else return 0;
 	}
 
-	static int GetScore(pixmap *Pixels, coordinate *Coordinates, int Delta, colourRange *Range, int Mode){
+	int GetScore(pixmap *Pixels, coordinate *Coordinates, int Delta, colourRange *Range, int Mode){
 		/*
 		 *	Name:				GetScore
 		 *
@@ -392,38 +387,22 @@ int main(int argc, char **argv){
 		int Score = 0;
 		if(Mode == 2){
 			int indexes[16] = {
-				//(Coordinates->X + Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-				//(Coordinates->X + Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-				//(Coordinates->X + Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-				//(Coordinates->X + Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-				(Coordinates->X + (Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
-				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
-				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
+				(Coordinates->X + Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+				(Coordinates->X + 3*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+				(Coordinates->X + 5*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+				(Coordinates->X + 7*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+				(Coordinates->X + Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+				(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+				(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+				(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+				(Coordinates->X + Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+				(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+				(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+				(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+				(Coordinates->X + Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+				(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+				(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+				(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
 			};
 			for(int* index = indexes; index < indexes+16; index++){
 				Score += CheckColour(Pixels->Pixmap[*index], *index, Range);
@@ -449,7 +428,7 @@ int main(int argc, char **argv){
 		return Score;
 	}
 
-	static void Converge(pixmap *Pixels, coordinate *PCoordinate, int SquareSize, colourRange *Range){
+	void Converge(pixmap *Pixels, coordinate *PCoordinate, int SquareSize, colourRange *Range){
 		/*
 		 *	Name:				Converge
 		 *
@@ -481,7 +460,7 @@ int main(int argc, char **argv){
 		}
 	}
 
-	static void FindBall(pixmap *Pixels, coordinate *PBall, coordinateRange *Table, int BallDiameter, colourRange *Range){
+	void FindBall(pixmap *Pixels, coordinate *PBall, coordinateRange *Table, int BallDiameter, colourRange *Range){
 		/*
 		 *	Name:				FindBall
 		 *
