@@ -29,6 +29,7 @@
 #define MAX_IMAGE_WIDTH 1000
 #define MAX_IMAGE_HEIGHT 1000
 
+// ## juste une question de présentation, mais pourquoi tout ton code est indenté vers la droite ?
 
 /*Structure declaration*/
 	typedef struct colour {int R, G, B;} colour;
@@ -59,7 +60,7 @@
 	void Converge(pixmap *Pixels, coordinate *PCoordinate, int SquareSize, colourRange *Range);
 
 	void FindBall(pixmap *Pixels, coordinate *PBall, coordinateRange *Table, int BallDiameter, colourRange *Range);
-	
+
 
 
 
@@ -120,7 +121,7 @@ int main(int argc, char **argv){
 			if(fclose(PosTxt)) perror("Error: couldn't close Pos.txt");
 		}
 	/*If the balls are not yet found, try to find them on the whole table*/
-		if(Red.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &Red, &Table, BallDiameter, &RBall);
+		if(Red.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &Red, &Table, BallDiameter, &RBall); // ##peut être se contenter d'un threshold plus petit pour éviter de tourner dans le vide si les balls sont déjà trouvées ? Genre la moitié de ballsize^2 me semblerait suffisant
 		if(Yellow.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &Yellow, &Table, BallDiameter, &YBall);
 		if(White.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &White, &Table, BallDiameter, &WBall);
 		free(Pixels.Pixmap);
@@ -137,9 +138,9 @@ int main(int argc, char **argv){
 			fprintf(stderr, "Error : white ball missing\n");
 			return -1;
 		}
-		if(abs(Red.X - White.X) <= BallDiameter && abs(Red.Y - White.Y) <= BallDiameter){
-			fprintf(stderr, "Error : white ball and red ball overlapping\n");
-			return -1;
+		if(abs(Red.X - White.X) <= BallDiameter && abs(Red.Y - White.Y) <= BallDiameter){ // ## Ca serait pas mieux d'utiliser la norme de la distance, même si c'est un chouille plus chiant à écrire ? (Red.X - White.X)*(Red.X - White.X) + (Red.Y - White.Y)*(Red.Y - White.Y) <= BallDiameter*BallDiameter
+			fprintf(stderr, "Error : white ball and red ball overlapping\n"); // ## Du coup on considererait bien des boulles et pas des cubes, ça éviterai les erreures superflues si une boulle s'approche trop par la diagonale
+			return -1; // ## by the way ça serait pas plus judicieux de mettre une égalité stricte, histoire de pas envoyer d'erreur si elles font que se toucher ?
 		}
 		if(abs(Red.X - Yellow.X) <= BallDiameter && abs(Red.Y - Yellow.Y) <= BallDiameter){
 			fprintf(stderr, "Error : yellow ball and red ball overlapping\n");
@@ -222,11 +223,11 @@ int main(int argc, char **argv){
 			fprintf(stderr, "Error : invalid number of argument, cannot continue\n");
 			return -1;
 		}
-		if(Table->Min.X < 0 || Table->Min.Y < 0 || Table->Min.X > Table->Max.X || Table->Min.Y > Table->Max.Y){
+		if(Table->Min.X < 0 || Table->Min.Y < 0 || Table->Min.X > Table->Max.X || Table->Min.Y > Table->Max.Y){ // ## peut être vérifier ausssi si la table sort pas de l'image ?
 			fprintf(stderr, "Error : invalid values passed as table size, cannot continue\n");
 			return -1;
 		}
-		if(RBall->Min.R < 0 || RBall->Min.G < 0 || RBall->Min.B < 0 || RBall->Min.R > RBall->Max.R || RBall->Min.G > RBall->Max.G || RBall->Min.B > RBall->Max.B){
+		if(RBall->Min.R < 0 || RBall->Min.G < 0 || RBall->Min.B < 0 || RBall->Min.R > RBall->Max.R || RBall->Min.G > RBall->Max.G || RBall->Min.B > RBall->Max.B){ // ##vérifier aussi si le max est <256 ?
 			fprintf(stderr, "Error : invalid values passed as red ball colour range, cannot continue\n");
 			return -1;
 		}
@@ -265,7 +266,7 @@ int main(int argc, char **argv){
 		 *						Prints the error code
 		 *
 		 *	Inputs:
-		 *		*ptr:			Pointer to store the read data in
+		 *		*ptr:			Pointer to store the red data in
 		 *		size:			Size of each element to read
 		 *		amount:			Amount of elements to read
 		 *		addition:		This variable is used to try to read an additional entry to detect if too many entries are in the file.
@@ -307,7 +308,7 @@ int main(int argc, char **argv){
 		 */
 		coordinateRange Neighbourhood;
 		Neighbourhood.Min.X = (Center->X - size) < Limits->Min.X ? Limits->Min.X : Center->X - size;
-		Neighbourhood.Max.X = (Center->X + size + Offset) > Limits->Max.X ? Limits->Max.X : Center->X + size + Offset;
+		Neighbourhood.Max.X = (Center->X + size + Offset) > Limits->Max.X ? Limits->Max.X : Center->X + size + Offset; // ## pourquoi laisser la possibilité d'offset seulement le x et pas le y ?
 		Neighbourhood.Min.Y = (Center->Y - size) < Limits->Min.Y ? Limits->Min.Y : Center->Y - size;
 		Neighbourhood.Max.Y = (Center->Y + size + Offset) > Limits->Max.Y ? Limits->Max.Y : Center->Y + size + Offset;
 		return Neighbourhood;
@@ -352,7 +353,7 @@ int main(int argc, char **argv){
 		 *						Pixel colour invalid
 		 */
 		colour PixelColour = Int2Colour(pixel);
-		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", index);
+		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", index); // ## pas d'erreur si + de 255 ?
 		if(PixelColour.R >= Range->Min.R && PixelColour.R <= Range->Max.R 
 			&& PixelColour.G >= Range->Min.G && PixelColour.G <= Range->Max.G 
 			&& PixelColour.B >= Range->Min.B && PixelColour.B <= Range->Max.B) 
@@ -385,7 +386,7 @@ int main(int argc, char **argv){
 		 *						Errorcode
 		 */
 		int Score = 0;
-		switch(Mode){
+		switch(Mode){ // ## peut être expliquer en comm que les mods correspondent à un tradeoff entre précision et vitesse d'exécution
 			case 2:;
 				int indexes[16] = {
 					(Coordinates->X + Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
@@ -449,7 +450,7 @@ int main(int argc, char **argv){
 			{PCoordinate->X - 1, PCoordinate->Y, 0},
 			{PCoordinate->X, PCoordinate->Y - 1, 0},
 		};
-		for(int level = 1; level >= 0; level--){
+		for(int level = 1; level >= 0; level--){ // ## je comprend pas trop à quoi correspond level, peut être ajouter des comms
 			for(int i = 4; i--; ){
 				TempCoords[i].Score = GetScore(Pixels, &TempCoords[i], SquareSize, Range, level);
 				if(TempCoords[i].Score > PCoordinate->Score){
@@ -477,15 +478,15 @@ int main(int argc, char **argv){
 		 *		BallDiameter:	Size of the ball
 		 *		Range:			Colour range of the ball
 		 */
-		coordinate TileAmount;
+		coordinate TileAmount; // ## peut être globalement ajouter plus de comments à la fonction. Même moi j'ai du la relire à plusieurs fois, et le prof à bugué quand Alex à éssayé de lui expliquer l'algo de convergence...
 		TileAmount.X = (Table->Max.X-Table->Min.X) / BallDiameter + ((Table->Max.X-Table->Min.X) % BallDiameter == 0 ? 0: 1);
 		TileAmount.Y = (Table->Max.Y-Table->Min.Y) / BallDiameter + ((Table->Max.Y-Table->Min.Y) % BallDiameter == 0 ? 0: 1);
-		for(int TileY = TileAmount.Y; TileY--; ){
+		for(int TileY = TileAmount.Y; TileY--; ){ // ## pas de condition de terminaison pour le for ? Pas un peu risqué ?
 			int y = Table->Min.Y + TileY*BallDiameter;
-			if(y+BallDiameter > Table->Max.Y) y -= y + BallDiameter - Table->Max.Y;
+			if(y+BallDiameter > Table->Max.Y) y -= y + BallDiameter - Table->Max.Y; // ## peut être plus clair d'écrire y = table max - ball diameter. Avec ton décrément on comprend pas trop ce qu'il se passe
 			for(int TileX = TileAmount.X; TileX--; ){
 				int x = Table->Min.X + TileX*BallDiameter;
-				if(x+BallDiameter > Table->Max.X) x -= x + BallDiameter - Table->Max.X;
+				if(x+BallDiameter > Table->Max.X) x -= x + BallDiameter - Table->Max.X; // ## voir comment ligne 485
 				coordinate Tile = {x, y, 0};
 				if(GetScore(Pixels, &Tile, BallDiameter, Range, 2)){
 					Tile.Score = GetScore(Pixels, &Tile, BallDiameter, Range, 1);
@@ -498,5 +499,4 @@ int main(int argc, char **argv){
 				}
 			}
 		}
-	}
-
+	} // ## et putain les lignes vides innutiles à la fin c'est tellement moche, je vais te refaire le cul.
