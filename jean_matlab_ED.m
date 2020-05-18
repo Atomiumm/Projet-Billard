@@ -74,30 +74,19 @@ AccLimit = ceil(sqrt(max(SqrtAcc)));
 TouchBallRed = 0*pos(:,1);
 TouchBallYellow = 0*pos(:,1);
 TouchBallWhite = 0*pos(:,1);
+TouchBandLeft = [0;SqrtAcc(:,FirstBall)>AccLimit(FirstBall);0] & abs(pos(:,2*FirstBall-1)-x_min) < ball_diam;
+TouchBandRight = [0;SqrtAcc(:,FirstBall)>AccLimit(FirstBall);0] & abs(pos(:,2*FirstBall-1)-x_max) < ball_diam;
+TouchBandBottom = [0;SqrtAcc(:,FirstBall)>AccLimit(FirstBall);0] & abs(pos(:,2*FirstBall)-y_min) < ball_diam;
+TouchBandTop = [0;SqrtAcc(:,FirstBall)>AccLimit(FirstBall);0] & abs(pos(:,2*FirstBall)-y_max) < ball_diam;
 if FirstBall == 1
-    TouchBandLeft = [0;SqrtAcc(:,1)>AccLimit(1);0] & abs(pos(:,1)-x_min) < ball_diam;
-    TouchBandRight = [0;SqrtAcc(:,1)>AccLimit(1);0] & abs(pos(:,1)-x_max) < ball_diam;
-    TouchBandBottom = [0;SqrtAcc(:,1)>AccLimit(1);0] & abs(pos(:,2)-y_min) < ball_diam;
-    TouchBandTop = [0;SqrtAcc(:,1)>AccLimit(1);0] & abs(pos(:,2)-y_max) < ball_diam;
-    TouchBallYellow = [0;SqrtAcc(:,1)>sqrt(AccLimit(1));0] & sqrt((pos(:,1)-pos(:,3)).^2+(pos(:,2)-pos(:,4)).^2) < 5*ball_diam;
-    TouchBallWhite = [0;SqrtAcc(:,1)>sqrt(AccLimit(1));0] & sqrt((pos(:,5)-pos(:,1)).^2+(pos(:,6)-pos(:,2)).^2) < 5*ball_diam;
-    col = 1;
+    TouchBallYellow = [0;SqrtAcc(:,FirstBall)>sqrt(AccLimit(FirstBall));0] & sqrt((pos(:,1)-pos(:,3)).^2+(pos(:,2)-pos(:,4)).^2) < 5*ball_diam;
+    TouchBallWhite = [0;SqrtAcc(:,FirstBall)>sqrt(AccLimit(FirstBall));0] & sqrt((pos(:,5)-pos(:,1)).^2+(pos(:,6)-pos(:,2)).^2) < 5*ball_diam;
 elseif FirstBall == 2
-    TouchBandLeft = [0;SqrtAcc(:,2)>AccLimit(2);0] & abs(pos(:,3)-x_min) < ball_diam;
-    TouchBandRight = [0;SqrtAcc(:,2)>AccLimit(2);0] & abs(pos(:,3)-x_max) < ball_diam;
-    TouchBandBottom = [0;SqrtAcc(:,2)>AccLimit(2);0] & abs(pos(:,4)-y_min) < ball_diam;
-    TouchBandTop = [0;SqrtAcc(:,2)>AccLimit(2);0] & abs(pos(:,4)-y_max) < ball_diam;
-    TouchBallRed = [0;SqrtAcc(:,2)>sqrt(AccLimit(2));0] & sqrt((pos(:,1)-pos(:,3)).^2+(pos(:,2)-pos(:,4)).^2) < 5*ball_diam;
-    TouchBallWhite = [0;SqrtAcc(:,2)>sqrt(AccLimit(2));0] & sqrt((pos(:,5)-pos(:,3)).^2+(pos(:,6)-pos(:,4)).^2) < 5*ball_diam;
-    col = 2;
+    TouchBallRed = [0;SqrtAcc(:,FirstBall)>sqrt(AccLimit(FirstBall));0] & sqrt((pos(:,1)-pos(:,3)).^2+(pos(:,2)-pos(:,4)).^2) < 5*ball_diam;
+    TouchBallWhite = [0;SqrtAcc(:,FirstBall)>sqrt(AccLimit(FirstBall));0] & sqrt((pos(:,5)-pos(:,3)).^2+(pos(:,6)-pos(:,4)).^2) < 5*ball_diam;
 elseif FirstBall == 3
-    TouchBandLeft = [0;SqrtAcc(:,3)>AccLimit(3);0] & abs(pos(:,5)-x_min) < ball_diam;
-    TouchBandRight = [0;SqrtAcc(:,3)>AccLimit(3);0] & abs(pos(:,5)-x_max) < ball_diam;
-    TouchBandBottom = [0;SqrtAcc(:,3)>AccLimit(3);0] & abs(pos(:,6)-y_min) < ball_diam;
-    TouchBandTop = [0;SqrtAcc(:,3)>AccLimit(3);0] & abs(pos(:,6)-y_max) < ball_diam;
-    TouchBallRed = [0;SqrtAcc(:,3)>sqrt(AccLimit(3));0] & sqrt((pos(:,1)-pos(:,5)).^2+(pos(:,2)-pos(:,6)).^2) < 5*ball_diam;
-    TouchBallYellow = [0;SqrtAcc(:,3)>sqrt(AccLimit(3));0] & sqrt((pos(:,5)-pos(:,3)).^2+(pos(:,6)-pos(:,4)).^2) < 5*ball_diam;
-    col = 3;
+    TouchBallRed = [0;SqrtAcc(:,FirstBall)>sqrt(AccLimit(FirstBall));0] & sqrt((pos(:,1)-pos(:,5)).^2+(pos(:,2)-pos(:,6)).^2) < 5*ball_diam;
+    TouchBallYellow = [0;SqrtAcc(:,FirstBall)>sqrt(AccLimit(FirstBall));0] & sqrt((pos(:,5)-pos(:,3)).^2+(pos(:,6)-pos(:,4)).^2) < 5*ball_diam;
 end
 
 
@@ -132,18 +121,18 @@ end
 
 %% Plot interesting points
 
-plot(pos(TouchBandLeft, col*2-1), pos(TouchBandLeft, col*2), 'color',[%f %f %f],'Marker','%s')
-plot(pos(TouchBandRight, col*2-1), pos(TouchBandRight, col*2), 'color',[%f %f %f],'Marker','%s')
-plot(pos(TouchBandBottom, col*2-1), pos(TouchBandBottom, col*2), 'color',[%f %f %f],'Marker','%s')
-plot(pos(TouchBandTop, col*2-1), pos(TouchBandTop, col*2), 'color',[%f %f %f],'Marker','%s')
+plot(pos(TouchBandLeft, FirstBall*2-1), pos(TouchBandLeft, FirstBall*2), 'color',[%f %f %f],'Marker','%s')
+plot(pos(TouchBandRight, FirstBall*2-1), pos(TouchBandRight, FirstBall*2), 'color',[%f %f %f],'Marker','%s')
+plot(pos(TouchBandBottom, FirstBall*2-1), pos(TouchBandBottom, FirstBall*2), 'color',[%f %f %f],'Marker','%s')
+plot(pos(TouchBandTop, FirstBall*2-1), pos(TouchBandTop, FirstBall*2), 'color',[%f %f %f],'Marker','%s')
 if find(TouchBallRed,1) 
-    plot(pos(TouchBallRed, col*2-1), pos(TouchBallRed, col*2), 'color',[%f %f %f],'Marker','%s') 
+    plot(pos(TouchBallRed, FirstBall*2-1), pos(TouchBallRed, FirstBall*2), 'color',[%f %f %f],'Marker','%s') 
 end
 if find(TouchBallYellow,1) 
-    plot(pos(TouchBallYellow, col*2-1), pos(TouchBallYellow, col*2), 'color',[%f %f %f],'Marker','%s') 
+    plot(pos(TouchBallYellow, FirstBall*2-1), pos(TouchBallYellow, FirstBall*2), 'color',[%f %f %f],'Marker','%s') 
 end
 if find(TouchBallWhite,1) 
-    plot(pos(TouchBallWhite, col*2-1), pos(TouchBallWhite, col*2), 'color',[%f %f %f],'Marker','%s') 
+    plot(pos(TouchBallWhite, FirstBall*2-1), pos(TouchBallWhite, FirstBall*2), 'color',[%f %f %f],'Marker','%s') 
 end
 
 
@@ -186,16 +175,16 @@ end
 
 
 
+time_t = floor(clock);
+scoresheet_title = sprintf('Score Sheet %s - /%s - /%d h /%d min /%d s',date,time_t(4:6));
+sgtitle(scoresheet_title)
+
 text_to_display = {sprintf("Scores for player /%s",Player),TouchBallsMess,TouchBandsMess,sprintf("dist(r) = /%dpx",dist(1)),sprintf("dist(y) = /%dpx",dist(2)),sprintf("dist(w) = /%dpx",dist(3)),WinMess};
 x_text = x_min + [1 13 13 1 7 13 1]*(x_max-x_min)/18;
 y_text = y_max + [14 14 43 72 72 72 43];
 text(x_text,y_text,text_to_display);
 
-time_t = floor(clock);
-scoresheet_title = sprintf('Score Sheet %s - /%s - /%d h /%d min /%d s',date,time_t(4:6));
-sgtitle(scoresheet_title)
-
-axis([x_min-5 x_max+5 y_min-5 y_max+100]);
+axis([x_min x_max y_min-5 y_max+100]);
 set(gca,'visible','off');
 set(gca,'xtick',[]);
 
@@ -205,4 +194,3 @@ set(gcf, 'Position', [0.5 0.5 28.7 20]);
 
 saveas(ScoreSheet,'ScoreSheet.pdf');
 open('ScoreSheet.pdf');
-
