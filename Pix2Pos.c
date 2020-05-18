@@ -59,7 +59,7 @@
 	void Converge(pixmap *Pixels, coordinate *PCoordinate, int SquareSize, colourRange *Range);
 
 	void FindBall(pixmap *Pixels, coordinate *PBall, coordinateRange *Table, int BallDiameter, colourRange *Range);
-	
+
 
 
 
@@ -120,7 +120,7 @@ int main(int argc, char **argv){
 			if(fclose(PosTxt)) perror("Error: couldn't close Pos.txt");
 		}
 	/*If the balls are not yet found, try to find them on the whole table*/
-		if(Red.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &Red, &Table, BallDiameter, &RBall);
+		if(Red.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &Red, &Table, BallDiameter, &RBall); // ##peut être se contenter d'un threshold plus petit pour éviter de tourner dans le vide si les balls sont déjà trouvées ? Genre la moitié de ballsize^2 me semblerait suffisant
 		if(Yellow.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &Yellow, &Table, BallDiameter, &YBall);
 		if(White.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &White, &Table, BallDiameter, &WBall);
 		free(Pixels.Pixmap);
@@ -137,9 +137,9 @@ int main(int argc, char **argv){
 			fprintf(stderr, "Error : white ball missing\n");
 			return -1;
 		}
-		if(abs(Red.X - White.X) <= BallDiameter && abs(Red.Y - White.Y) <= BallDiameter){
-			fprintf(stderr, "Error : white ball and red ball overlapping\n");
-			return -1;
+		if(abs(Red.X - White.X) <= BallDiameter && abs(Red.Y - White.Y) <= BallDiameter){ // ## Ca serait pas mieux d'utiliser la norme de la distance, même si c'est un chouille plus chiant à écrire ? (Red.X - White.X)*(Red.X - White.X) + (Red.Y - White.Y)*(Red.Y - White.Y) <= BallDiameter*BallDiameter
+			fprintf(stderr, "Error : white ball and red ball overlapping\n"); // ## Du coup on considererait bien des boulles et pas des cubes, ça éviterai les erreures superflues si une boulle s'approche trop par la diagonale
+			return -1; // ## by the way ça serait pas plus judicieux de mettre une égalité stricte, histoire de pas envoyer d'erreur si elles font que se toucher ?
 		}
 		if(abs(Red.X - Yellow.X) <= BallDiameter && abs(Red.Y - Yellow.Y) <= BallDiameter){
 			fprintf(stderr, "Error : yellow ball and red ball overlapping\n");
@@ -222,11 +222,11 @@ int main(int argc, char **argv){
 			fprintf(stderr, "Error : invalid number of argument, cannot continue\n");
 			return -1;
 		}
-		if(Table->Min.X < 0 || Table->Min.Y < 0 || Table->Min.X > Table->Max.X || Table->Min.Y > Table->Max.Y){
+		if(Table->Min.X < 0 || Table->Min.Y < 0 || Table->Min.X > Table->Max.X || Table->Min.Y > Table->Max.Y){ // ## peut être vérifier ausssi si la table sort pas de l'image ?
 			fprintf(stderr, "Error : invalid values passed as table size, cannot continue\n");
 			return -1;
 		}
-		if(RBall->Min.R < 0 || RBall->Min.G < 0 || RBall->Min.B < 0 || RBall->Min.R > RBall->Max.R || RBall->Min.G > RBall->Max.G || RBall->Min.B > RBall->Max.B){
+		if(RBall->Min.R < 0 || RBall->Min.G < 0 || RBall->Min.B < 0 || RBall->Min.R > RBall->Max.R || RBall->Min.G > RBall->Max.G || RBall->Min.B > RBall->Max.B){ // ##vérifier aussi si le max est <256 ?
 			fprintf(stderr, "Error : invalid values passed as red ball colour range, cannot continue\n");
 			return -1;
 		}
@@ -265,7 +265,7 @@ int main(int argc, char **argv){
 		 *						Prints the error code
 		 *
 		 *	Inputs:
-		 *		*ptr:			Pointer to store the read data in
+		 *		*ptr:			Pointer to store the red data in
 		 *		size:			Size of each element to read
 		 *		amount:			Amount of elements to read
 		 *		addition:		This variable is used to try to read an additional entry to detect if too many entries are in the file.
@@ -307,7 +307,7 @@ int main(int argc, char **argv){
 		 */
 		coordinateRange Neighbourhood;
 		Neighbourhood.Min.X = (Center->X - size) < Limits->Min.X ? Limits->Min.X : Center->X - size;
-		Neighbourhood.Max.X = (Center->X + size + Offset) > Limits->Max.X ? Limits->Max.X : Center->X + size + Offset;
+		Neighbourhood.Max.X = (Center->X + size + Offset) > Limits->Max.X ? Limits->Max.X : Center->X + size + Offset; // ## pourquoi laisser la possibilité d'offset seulement le x et pas le y ?
 		Neighbourhood.Min.Y = (Center->Y - size) < Limits->Min.Y ? Limits->Min.Y : Center->Y - size;
 		Neighbourhood.Max.Y = (Center->Y + size + Offset) > Limits->Max.Y ? Limits->Max.Y : Center->Y + size + Offset;
 		return Neighbourhood;
