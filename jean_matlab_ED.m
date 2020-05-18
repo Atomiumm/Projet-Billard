@@ -120,7 +120,7 @@ elseif (FirstBall == 1 & FirstBallTouch == 3) | (FirstBall == 3 & FirstBallTouch
     SecondBallTouchRow = find(TouchBallYellow,1);
 end
 
-if size(SecondBallTouchRow,1) > 0
+if size(SecondBallTouchRow,1) > 0 % ## meh, pas certain que ça soit optimal comme méthode
     TouchBandLeft(SecondBallTouchRow+1:end) = 0*TouchBandLeft(SecondBallTouchRow+1:end);
     TouchBandRight(SecondBallTouchRow+1:end) = 0*TouchBandRight(SecondBallTouchRow+1:end);
     TouchBandBottom(SecondBallTouchRow+1:end) = 0*TouchBandBottom(SecondBallTouchRow+1:end);
@@ -205,4 +205,3 @@ set(gcf, 'Position', [0.5 0.5 28.7 20]);
 
 saveas(ScoreSheet,'ScoreSheet.pdf');
 open('ScoreSheet.pdf');
-
