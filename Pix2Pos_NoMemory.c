@@ -45,10 +45,8 @@
 
 /*Function declaration*/
 	int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter);
-	
-	int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file);
 
-	coordinateRange buildNeighbourhood(coordinate *Center, coordinateRange *Limits, int size, int Offset);
+	int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file);
 
 	colour Int2Colour(int ColourInt);
 
@@ -59,12 +57,16 @@
 	void Converge(pixmap *Pixels, coordinate *PCoordinate, int SquareSize, colourRange *Range);
 
 	void FindBall(pixmap *Pixels, coordinate *PBall, coordinateRange *Table, int BallDiameter, colourRange *Range);
+
+
+
+
 	
 
 
 
 /*Main*/
-int main(int argc, char **argv){
+int main(int argc, char **argv){	
 	/*Variable Declaration*/
 		coordinateRange Table;
 		colourRange RBall;
@@ -78,7 +80,6 @@ int main(int argc, char **argv){
 		coordinate White = {-1, -1, -1};
 	/*Read arguments*/
 		if(readCommandLine(argc, argv, &Table, &RBall, &YBall, &WBall, &BG, &BallDiameter)) return -1;
-		//Ceci est un commentaire qui me permet de fermer cette partie du code
 	/*Open Pixmap.bin and verify width and heigth*/
 		FILE *PixmapBin;
 		PixmapBin = fopen("Pixmap.bin", "rb");
@@ -100,29 +101,10 @@ int main(int argc, char **argv){
 			return -1;
 		}
 		if(fclose(PixmapBin)) perror("Error : couldn't close Pixmap.bin");
-	/*Read Pos.txt and try to find the balls in the neighourhood of the old balls*/
-		FILE *PosTxt;
-		PosTxt = fopen("Pos.txt", "r");
-		if(PosTxt != NULL){
-			coordinate Temp = {-1, -1, -1};
-			if(3 == fscanf(PosTxt, "Red: %d, %d, %d\n", &(Temp.X), &(Temp.Y), &(Temp.Score))){
-				coordinateRange Neighbourhood = buildNeighbourhood(&Temp, &Table, 2*BallDiameter, BallDiameter);
-				FindBall(&Pixels, &Red, &Neighbourhood, BallDiameter, &RBall);
-			}
-			if(3 == fscanf(PosTxt, "Yellow: %d, %d, %d\n", &(Temp.X), &(Temp.Y), &(Temp.Score))){
-				coordinateRange Neighbourhood = buildNeighbourhood(&Temp, &Table, 2*BallDiameter, BallDiameter);
-				FindBall(&Pixels, &Yellow, &Neighbourhood, BallDiameter, &YBall);
-			}
-			if(3 == fscanf(PosTxt, "White: %d, %d, %d\n", &(Temp.X), &(Temp.Y), &(Temp.Score))){
-				coordinateRange Neighbourhood = buildNeighbourhood(&Temp, &Table, 2*BallDiameter, BallDiameter);
-				FindBall(&Pixels, &White, &Neighbourhood, BallDiameter, &WBall);
-			}
-			if(fclose(PosTxt)) perror("Error: couldn't close Pos.txt");
-		}
-	/*If the balls are not yet found, try to find them on the whole table*/
-		if(Red.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &Red, &Table, BallDiameter, &RBall);
-		if(Yellow.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &Yellow, &Table, BallDiameter, &YBall);
-		if(White.Score < 7*BallDiameter*BallDiameter/10) FindBall(&Pixels, &White, &Table, BallDiameter, &WBall);
+	/*Try to find the balls*/
+		FindBall(&Pixels, &Red, &Table, BallDiameter, &RBall);
+		FindBall(&Pixels, &Yellow, &Table, BallDiameter, &YBall);
+		FindBall(&Pixels, &White, &Table, BallDiameter, &WBall);
 		free(Pixels.Pixmap);
 	/*Check if the balls are all here and if they are overlapping*/
 		if(Red.Score < 0){
@@ -150,7 +132,7 @@ int main(int argc, char **argv){
 			return -1;
 		}
 	/*Open and write in Pos.txt*/
-		PosTxt = fopen("Pos.txt", "w");
+		FILE *PosTxt = fopen("Pos.txt", "w");
 		if(PosTxt == NULL){
 			perror("Error : couldn't open Pos.txt");
 			return -1;
@@ -164,6 +146,7 @@ int main(int argc, char **argv){
 			}
 		}
 		if(fclose(PosTxt)) perror("Error: couldn't close Pos.txt");
+
 	return 0;
 }
 
@@ -172,7 +155,7 @@ int main(int argc, char **argv){
 
 
 /*Function initialization*/
-	int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter){
+	__inline int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter){
 		/*
 		 *	Name:				readCommandLine
 		 *
@@ -253,7 +236,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 	
-	int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file){
+	__inline int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file){
 		/*
 		 *	Name:				readFile
 		 *
@@ -291,29 +274,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 
-	coordinateRange buildNeighbourhood(coordinate *Center, coordinateRange *Limits, int size, int Offset){
-		/*
-		 *	Name:				buildNeighbourhood
-		 *
-		 *	Description:		Builds a coordinate range of given size around a given point while staying in a given coordinate range
-		 *
-		 *	Inputs:
-		 *		Center:			Center of the neighbourhood to build
-		 *		Limits:			Limits the built neighbourhood shouldn't cross
-		 *		size:			Size of the neighbourhood
-		 *		Offset:			Offset of the center of the neighbourhood
-		 *	Output:			
-		 *		Neighbourhood:	Built neighbourhood
-		 */
-		coordinateRange Neighbourhood;
-		Neighbourhood.Min.X = (Center->X - size) < Limits->Min.X ? Limits->Min.X : Center->X - size;
-		Neighbourhood.Max.X = (Center->X + size + Offset) > Limits->Max.X ? Limits->Max.X : Center->X + size + Offset;
-		Neighbourhood.Min.Y = (Center->Y - size) < Limits->Min.Y ? Limits->Min.Y : Center->Y - size;
-		Neighbourhood.Max.Y = (Center->Y + size + Offset) > Limits->Max.Y ? Limits->Max.Y : Center->Y + size + Offset;
-		return Neighbourhood;
-	}
-
-	colour Int2Colour(int ColourInt) {
+	__inline colour Int2Colour(int ColourInt) {
 		/*
 		 *	Name:				Int2Colour
 		 *
@@ -336,7 +297,7 @@ int main(int argc, char **argv){
 		return ColourRGB;
 	}
 
-	int CheckColour(int pixel, int index, colourRange *Range){
+	__inline int CheckColour(int pixel, int index, colourRange *Range){
 		/*
 		 *	Name:				CheckColour
 		 *
@@ -385,46 +346,61 @@ int main(int argc, char **argv){
 		 *						Errorcode
 		 */
 		int Score = 0;
-		switch(Mode){
-			case 2:;
-				int indexes[16] = {
-					(Coordinates->X + Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-					(Coordinates->X + 3*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-					(Coordinates->X + 5*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-					(Coordinates->X + 7*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-					(Coordinates->X + Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-					(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-					(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-					(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-					(Coordinates->X + Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-					(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-					(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-					(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-					(Coordinates->X + Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-					(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-					(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-					(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-				};
-				for(int* index = indexes; index < indexes+16; index++){
-					Score += CheckColour(Pixels->Pixmap[*index], *index, Range);
-				}
-				break;
-			case 1:;
-				int x = Coordinates->X + Delta/2;
+		if(Mode == 2){
+			int indexes[16] = {
+				//(Coordinates->X + Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+				//(Coordinates->X + Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+				//(Coordinates->X + Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+				//(Coordinates->X + Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+				(Coordinates->X + (Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
+				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
+				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
+				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
+			};
+			for(int* index = indexes; index < indexes+16; index++){
+				Score += CheckColour(Pixels->Pixmap[*index], *index, Range);
+			}
+		}
+		else if(Mode == 1){
+			int x = Coordinates->X + Delta/2;
+			for(int y = Coordinates->Y; y < Coordinates->Y + Delta; y++){
+				Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
+			}
+			int y = Coordinates->Y + Delta/2;
+			for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
+				Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
+			}
+		}
+		else{
+			for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
 				for(int y = Coordinates->Y; y < Coordinates->Y + Delta; y++){
 					Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
 				}
-				int y = Coordinates->Y + Delta/2;
-				for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
-					Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
-				}
-				break;
-			default:
-				for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
-					for(int y = Coordinates->Y; y < Coordinates->Y + Delta; y++){
-						Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
-					}
-				}
+			}
 		}
 		return Score;
 	}
