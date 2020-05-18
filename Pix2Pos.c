@@ -29,6 +29,7 @@
 #define MAX_IMAGE_WIDTH 1000
 #define MAX_IMAGE_HEIGHT 1000
 
+// ## juste une question de présentation, mais pourquoi tout ton code est indenté vers la droite ?
 
 /*Structure declaration*/
 	typedef struct colour {int R, G, B;} colour;
@@ -352,7 +353,7 @@ int main(int argc, char **argv){
 		 *						Pixel colour invalid
 		 */
 		colour PixelColour = Int2Colour(pixel);
-		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", index);
+		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", index); // ## pas d'erreur si + de 255 ?
 		if(PixelColour.R >= Range->Min.R && PixelColour.R <= Range->Max.R 
 			&& PixelColour.G >= Range->Min.G && PixelColour.G <= Range->Max.G 
 			&& PixelColour.B >= Range->Min.B && PixelColour.B <= Range->Max.B) 
@@ -385,7 +386,7 @@ int main(int argc, char **argv){
 		 *						Errorcode
 		 */
 		int Score = 0;
-		switch(Mode){
+		switch(Mode){ // ## peut être expliquer en comm que les mods correspondent à un tradeoff entre précision et vitesse d'exécution
 			case 2:;
 				int indexes[16] = {
 					(Coordinates->X + Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
@@ -449,7 +450,7 @@ int main(int argc, char **argv){
 			{PCoordinate->X - 1, PCoordinate->Y, 0},
 			{PCoordinate->X, PCoordinate->Y - 1, 0},
 		};
-		for(int level = 1; level >= 0; level--){
+		for(int level = 1; level >= 0; level--){ // ## je comprend pas trop à quoi correspond level, peut être ajouter des comms
 			for(int i = 4; i--; ){
 				TempCoords[i].Score = GetScore(Pixels, &TempCoords[i], SquareSize, Range, level);
 				if(TempCoords[i].Score > PCoordinate->Score){
@@ -477,15 +478,15 @@ int main(int argc, char **argv){
 		 *		BallDiameter:	Size of the ball
 		 *		Range:			Colour range of the ball
 		 */
-		coordinate TileAmount;
+		coordinate TileAmount; // ## peut être globalement ajouter plus de comments à la fonction. Même moi j'ai du la relire à plusieurs fois, et le prof à bugué quand Alex à éssayé de lui expliquer l'algo de convergence...
 		TileAmount.X = (Table->Max.X-Table->Min.X) / BallDiameter + ((Table->Max.X-Table->Min.X) % BallDiameter == 0 ? 0: 1);
 		TileAmount.Y = (Table->Max.Y-Table->Min.Y) / BallDiameter + ((Table->Max.Y-Table->Min.Y) % BallDiameter == 0 ? 0: 1);
-		for(int TileY = TileAmount.Y; TileY--; ){
+		for(int TileY = TileAmount.Y; TileY--; ){ // ## pas de condition de terminaison pour le for ? Pas un peu risqué ?
 			int y = Table->Min.Y + TileY*BallDiameter;
-			if(y+BallDiameter > Table->Max.Y) y -= y + BallDiameter - Table->Max.Y;
+			if(y+BallDiameter > Table->Max.Y) y -= y + BallDiameter - Table->Max.Y; // ## peut être plus clair d'écrire y = table max - ball diameter. Avec ton décrément on comprend pas trop ce qu'il se passe
 			for(int TileX = TileAmount.X; TileX--; ){
 				int x = Table->Min.X + TileX*BallDiameter;
-				if(x+BallDiameter > Table->Max.X) x -= x + BallDiameter - Table->Max.X;
+				if(x+BallDiameter > Table->Max.X) x -= x + BallDiameter - Table->Max.X; // ## voir comment ligne 485
 				coordinate Tile = {x, y, 0};
 				if(GetScore(Pixels, &Tile, BallDiameter, Range, 2)){
 					Tile.Score = GetScore(Pixels, &Tile, BallDiameter, Range, 1);
@@ -498,5 +499,4 @@ int main(int argc, char **argv){
 				}
 			}
 		}
-	}
-
+	} // ## et putain les lignes vides innutiles à la fin c'est tellement moche, je vais te refaire le cul.
