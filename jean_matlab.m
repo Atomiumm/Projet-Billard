@@ -1,4 +1,4 @@
-fs%% initialisation
+%% initialisation
 
 clear;clc; close all
 
@@ -21,9 +21,9 @@ ScoreSheet = figure(1);
 
 hold on
 
-plot(pos(:,1),pos(:,2),'color',[0.631 0.075 0.004],'lineStyle','%s');
-plot(pos(:,3),pos(:,4),'color',[0.929 0.761 0.016],'lineStyle','%s');
-plot(pos(:,5),pos(:,6),'color',[0.157 0.157 0.235],'lineStyle','%s');
+plot(pos(:,1),pos(:,2),'color',[%f %f %f],'lineStyle','%s');
+plot(pos(:,3),pos(:,4),'color',[%f %f %f],'lineStyle','%s');
+plot(pos(:,5),pos(:,6),'color',[%f %f %f],'lineStyle','%s');
 axis ij
 
 line([x_min x_max],[y_min y_min]);
@@ -36,8 +36,6 @@ line([x_max x_max],[y_min y_max]);
 posleft = [pos;pos(end,:);pos(end,:)];
 posright = [pos(1,:);pos(1,:);pos];
 pos = [pos(1,:);pos;pos(end,:)];
-
-n_frames = numel(pos)/6;
 
 vel = (posright-posleft)/2;
 acc = (posright-2*pos+posleft)/4;
@@ -53,8 +51,7 @@ moving(:,1) = (pos(:,1)-pos(1,1)).^2 + (pos(:,2)-pos(1,2)).^2 >= 100;
 moving(:,2) = (pos(:,3)-pos(1,3)).^2 + (pos(:,4)-pos(1,4)).^2 >= 100;
 moving(:,3) = (pos(:,5)-pos(1,5)).^2 + (pos(:,6)-pos(1,6)).^2 >= 100;
 
-moving_ind = find(moving);
-player_ball = ceil(min(moving_ind(mod(moving_ind-1,n_frames)==min(mod(moving_ind-1,n_frames))))/n_frames);
+[player_ball,~] = find(moving',1);
 
 if player_ball == 1
     player='red';
@@ -115,9 +112,9 @@ ball_touch_b = find(ball_touch_b);
 
 %% plot of band touch and ball touch
 
-plot(pos(band_touch,2*player_ball-1),pos(band_touch,2*player_ball),'sq','lineStyle','none','color',%s);
-plot(pos(ball_touch_a,2*player_ball-1),pos(ball_touch_a,2*player_ball),'o','lineStyle','none','color',%s);
-plot(pos(ball_touch_b,2*player_ball-1),pos(ball_touch_b,2*player_ball),'o','lineStyle','none','color',%s);
+plot(pos(band_touch,2*player_ball-1),pos(band_touch,2*player_ball),'Marker','%s','lineStyle','none','color',[%f %f %f]);
+plot(pos(ball_touch_a,2*player_ball-1),pos(ball_touch_a,2*player_ball),'Marker','%s','lineStyle','none','color',[%f %f %f]);
+plot(pos(ball_touch_b,2*player_ball-1),pos(ball_touch_b,2*player_ball),'Marker','%s','lineStyle','none','color',[%f %f %f]);
 
 %% checking for winning condition : both balls are touched and 3 bands inbetween
 
