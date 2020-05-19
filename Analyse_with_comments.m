@@ -92,19 +92,19 @@ ball_touch_b = (abs(acc(:,2*player_ball-1)) > 0 | abs(acc(:,2*player_ball)) > 0)
 
 %% delete double count
 
-band_touch_left_left = [band_touch_left(2:end);band_touch_left(end)];
-band_touch_right_left = [band_touch_right(2:end);band_touch_right(end)];
-band_touch_up_left = [band_touch_up(2:end);band_touch_up(end)];
-band_touch_down_left = [band_touch_down(2:end);band_touch_down(end)];
-ball_touch_a_left = [ball_touch_a(2:end);ball_touch_a(end)];
-ball_touch_b_left = [ball_touch_b(2:end);ball_touch_b(end)];
+band_touch_left_right = [band_touch_left(1);band_touch_left(1:end-1)];
+band_touch_right_right = [band_touch_right(1);band_touch_right(1:end-1)];
+band_touch_up_right = [band_touch_up(1);band_touch_up(1:end-1)];
+band_touch_down_right = [band_touch_down(1);band_touch_down(1:end-1)];
+ball_touch_a_right = [ball_touch_a(1);ball_touch_a(1:end-1)];
+ball_touch_b_right = [ball_touch_b(1);ball_touch_b(1:end-1)];
 
-band_touch_left(band_touch_left & band_touch_left_left) = 0;
-band_touch_right(band_touch_right & band_touch_right_left) = 0;
-band_touch_up(band_touch_up & band_touch_up_left) = 0;
-band_touch_down(band_touch_down & band_touch_down_left) = 0;
-ball_touch_a(ball_touch_a & ball_touch_a_left) = 0;
-ball_touch_b(ball_touch_b & ball_touch_b_left) = 0;
+band_touch_left(band_touch_left & band_touch_left_right) = 0;
+band_touch_right(band_touch_right & band_touch_right_right) = 0;
+band_touch_up(band_touch_up & band_touch_up_right) = 0;
+band_touch_down(band_touch_down & band_touch_down_right) = 0;
+ball_touch_a(ball_touch_a & ball_touch_a_right) = 0;
+ball_touch_b(ball_touch_b & ball_touch_b_right) = 0;
 
 band_touch=find(band_touch_left | band_touch_right | band_touch_up | band_touch_down);
 ball_touch_a = find(ball_touch_a);
