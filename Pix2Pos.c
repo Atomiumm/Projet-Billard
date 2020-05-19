@@ -87,9 +87,10 @@ int main(int argc, char **argv){
 			perror("Error : couldn't open Pixmap.bin");
 			return -1;
 		}
-		if(readFile(&(Pixels.Width), sizeof(unsigned int), 1, 0, PixmapBin)) return -1;
-		if(readFile(&(Pixels.Height), sizeof(unsigned int), 1, 0, PixmapBin)) return -1;
+		if(readFile(&(Pixels.Width), sizeof(unsigned int), 1, 0, PixmapBin)) {if(fclose(PixmapBin)) perror("Error : couldn't close Pixmap.bin"); return -1;}
+		if(readFile(&(Pixels.Height), sizeof(unsigned int), 1, 0, PixmapBin)) {if(fclose(PixmapBin)) perror("Error : couldn't close Pixmap.bin"); return -1;}
 		if(Pixels.Width < MIN_IMAGE_WIDTH || Pixels.Height < MIN_IMAGE_HEIGHT || Pixels.Width > MAX_IMAGE_WIDTH || Pixels.Height > MAX_IMAGE_HEIGHT || Pixels.Width < Table.Max.X || Pixels.Height < Table.Max.Y){
+			if(fclose(PixmapBin)) perror("Error : couldn't close Pixmap.bin");
 			fprintf(stderr, "Error : invalid values passed as image size, cannot continue\n");
 			return -1;
 		}
