@@ -30,6 +30,7 @@
 #define MAX_IMAGE_HEIGHT 1000
 
 
+
 /*Structure declaration*/
 	typedef struct colour {int R, G, B;} colour;
 
@@ -45,8 +46,10 @@
 
 /*Function declaration*/
 	int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter);
-
+	
 	int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file);
+
+	coordinateRange buildNeighbourhood(coordinate *Center, coordinateRange *Limits, int size, int Offset);
 
 	colour Int2Colour(int ColourInt);
 
@@ -61,12 +64,8 @@
 
 
 
-	
-
-
-
 /*Main*/
-int main(int argc, char **argv){	
+int main(int argc, char **argv){
 	/*Variable Declaration*/
 		coordinateRange Table;
 		colourRange RBall;
@@ -80,6 +79,7 @@ int main(int argc, char **argv){
 		coordinate White = {-1, -1, -1};
 	/*Read arguments*/
 		if(readCommandLine(argc, argv, &Table, &RBall, &YBall, &WBall, &BG, &BallDiameter)) return -1;
+		//Ceci est un commentaire qui me permet de fermer cette partie du code
 	/*Open Pixmap.bin and verify width and heigth*/
 		FILE *PixmapBin;
 		PixmapBin = fopen("Pixmap.bin", "rb");
@@ -87,9 +87,10 @@ int main(int argc, char **argv){
 			perror("Error : couldn't open Pixmap.bin");
 			return -1;
 		}
-		if(readFile(&(Pixels.Width), sizeof(unsigned int), 1, 0, PixmapBin)) return -1;
-		if(readFile(&(Pixels.Height), sizeof(unsigned int), 1, 0, PixmapBin)) return -1;
-		if(Pixels.Width < MIN_IMAGE_WIDTH || Pixels.Height < MIN_IMAGE_HEIGHT || Pixels.Width > MAX_IMAGE_WIDTH || Pixels.Height > MAX_IMAGE_HEIGHT){
+		if(readFile(&(Pixels.Width), sizeof(unsigned int), 1, 0, PixmapBin)) {if(fclose(PixmapBin)) perror("Error : couldn't close Pixmap.bin"); return -1;}
+		if(readFile(&(Pixels.Height), sizeof(unsigned int), 1, 0, PixmapBin)) {if(fclose(PixmapBin)) perror("Error : couldn't close Pixmap.bin"); return -1;}
+		if(Pixels.Width < MIN_IMAGE_WIDTH || Pixels.Height < MIN_IMAGE_HEIGHT || Pixels.Width > MAX_IMAGE_WIDTH || Pixels.Height > MAX_IMAGE_HEIGHT || Pixels.Width < Table.Max.X || Pixels.Height < Table.Max.Y){
+			if(fclose(PixmapBin)) perror("Error : couldn't close Pixmap.bin");
 			fprintf(stderr, "Error : invalid values passed as image size, cannot continue\n");
 			return -1;
 		}
@@ -101,7 +102,7 @@ int main(int argc, char **argv){
 			return -1;
 		}
 		if(fclose(PixmapBin)) perror("Error : couldn't close Pixmap.bin");
-	/*Try to find the balls*/
+	/*If the balls are not yet found, try to find them on the whole table*/
 		FindBall(&Pixels, &Red, &Table, BallDiameter, &RBall);
 		FindBall(&Pixels, &Yellow, &Table, BallDiameter, &YBall);
 		FindBall(&Pixels, &White, &Table, BallDiameter, &WBall);
@@ -132,7 +133,7 @@ int main(int argc, char **argv){
 			return -1;
 		}
 	/*Open and write in Pos.txt*/
-		FILE *PosTxt = fopen("Pos.txt", "w");
+		PosTxt = fopen("Pos.txt", "w");
 		if(PosTxt == NULL){
 			perror("Error : couldn't open Pos.txt");
 			return -1;
@@ -146,7 +147,6 @@ int main(int argc, char **argv){
 			}
 		}
 		if(fclose(PosTxt)) perror("Error: couldn't close Pos.txt");
-
 	return 0;
 }
 
@@ -155,7 +155,7 @@ int main(int argc, char **argv){
 
 
 /*Function initialization*/
-	__inline int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter){
+	int readCommandLine(int argc, char **argv, coordinateRange *Table, colourRange *RBall, colourRange *YBall, colourRange *WBall, colourRange *BG, int *BallDiameter){
 		/*
 		 *	Name:				readCommandLine
 		 *
@@ -209,19 +209,19 @@ int main(int argc, char **argv){
 			fprintf(stderr, "Error : invalid values passed as table size, cannot continue\n");
 			return -1;
 		}
-		if(RBall->Min.R < 0 || RBall->Min.G < 0 || RBall->Min.B < 0 || RBall->Min.R > RBall->Max.R || RBall->Min.G > RBall->Max.G || RBall->Min.B > RBall->Max.B){
+		if(RBall->Min.R < 0 || RBall->Min.G < 0 || RBall->Min.B < 0 || RBall->Max.R > 255 || RBall->Max.G > 255 || RBall->Max.B > 255 || RBall->Min.R > RBall->Max.R || RBall->Min.G > RBall->Max.G || RBall->Min.B > RBall->Max.B){
 			fprintf(stderr, "Error : invalid values passed as red ball colour range, cannot continue\n");
 			return -1;
 		}
-		if(YBall->Min.R < 0 || YBall->Min.G < 0 || YBall->Min.B < 0 || YBall->Min.R > YBall->Max.R || YBall->Min.G > YBall->Max.G || YBall->Min.B > YBall->Max.B){
+		if(YBall->Min.R < 0 || YBall->Min.G < 0 || YBall->Min.B < 0 || YBall->Max.R > 255 || YBall->Max.G > 255 || YBall->Max.B > 255 || YBall->Min.R > YBall->Max.R || YBall->Min.G > YBall->Max.G || YBall->Min.B > YBall->Max.B){
 			fprintf(stderr, "Error : invalid values passed as yellow ball colour range, cannot continue\n");
 			return -1;
 		}
-		if(WBall->Min.R < 0 || WBall->Min.G < 0 || WBall->Min.B < 0 || WBall->Min.R > WBall->Max.R || WBall->Min.G > WBall->Max.G || WBall->Min.B > WBall->Max.B){
+		if(WBall->Min.R < 0 || WBall->Min.G < 0 || WBall->Min.B < 0 || WBall->Max.R > 255 || WBall->Max.G > 255 || WBall->Max.B > 255 || WBall->Min.R > WBall->Max.R || WBall->Min.G > WBall->Max.G || WBall->Min.B > WBall->Max.B){
 			fprintf(stderr, "Error : invalid values passed as white ball colour range, cannot continue\n");
 			return -1;
 		}
-		if(BG->Min.R < 0 || BG->Min.G < 0 || BG->Min.B < 0 || BG->Min.R > BG->Max.R || BG->Min.G > BG->Max.G || BG->Min.B > BG->Max.B){
+		if(BG->Min.R < 0 || BG->Min.G < 0 || BG->Min.B < 0 || BG->Max.R > 255 || BG->Max.G > 255 || BG->Max.B > 255 || BG->Min.R > BG->Max.R || BG->Min.G > BG->Max.G || BG->Min.B > BG->Max.B){
 			fprintf(stderr, "Error : invalid values passed as background colour range, cannot continue\n");
 			return -1;
 		}
@@ -236,7 +236,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 	
-	__inline int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file){
+	int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *file){
 		/*
 		 *	Name:				readFile
 		 *
@@ -248,7 +248,7 @@ int main(int argc, char **argv){
 		 *						Prints the error code
 		 *
 		 *	Inputs:
-		 *		*ptr:			Pointer to store the read data in
+		 *		*ptr:			Pointer to store the red data in
 		 *		size:			Size of each element to read
 		 *		amount:			Amount of elements to read
 		 *		addition:		This variable is used to try to read an additional entry to detect if too many entries are in the file.
@@ -274,7 +274,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 
-	__inline colour Int2Colour(int ColourInt) {
+	colour Int2Colour(int ColourInt) {
 		/*
 		 *	Name:				Int2Colour
 		 *
@@ -297,7 +297,7 @@ int main(int argc, char **argv){
 		return ColourRGB;
 	}
 
-	__inline int CheckColour(int pixel, int index, colourRange *Range){
+	int CheckColour(int pixel, int index, colourRange *Range){
 		/*
 		 *	Name:				CheckColour
 		 *
@@ -328,79 +328,61 @@ int main(int argc, char **argv){
 		 *	Description:		Gets the score of a given square
 		 *
 		 *	Full Description:	This function calculates the score of an amount of pixel given by the mode
+		 *						The higher the mode, the faster, but the less precise.
 		 *		Mode 0				All the pixels of the square
 		 *		Mode 1				Central cross of the same size as the square
 		 *		Mode 2				16 pixels uniformly distributed in the square
 		 *
 		 *	Inputs:
-		 *		*ptr:			Pointer to store the read data in
-		 *		size:			Size of each element to read
-		 *		amount:			Amount of elements to read
-		 *		addition:		This variable is used to try to read an additional entry to detect if too many entries are in the file.
-		 *		*file:			File to read from
-		 *	Return:			
-		 *		return:			0 if all worked perfectly, else -1
-		 *	Errors:
-		 *						Wrong amount of elements read
-		 *						End of file reached
-		 *						Errorcode
+		 *		Pixels:			Pixmap
+		 *		Coordinates:	Coordinates of the square to calculate the score of
+		 *		Delta:			Size of the square
+		 *		Range:			ColourRange to calculate the score with
+		 *		Mode:			Mode desscribed in the full description
+		 *	Output:
+		 *		Score:			Score
 		 */
 		int Score = 0;
-		if(Mode == 2){
-			int indexes[16] = {
-				//(Coordinates->X + Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
-				//(Coordinates->X + Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
-				//(Coordinates->X + Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
-				//(Coordinates->X + Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-				//(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
-				(Coordinates->X + (Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
-				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + (Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + (Delta>>2)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + (Delta>>1)+(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>2)+(Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
-				(Coordinates->X + (Delta>>1)+(Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
-				(Coordinates->X + Delta-(Delta>>3))+(Coordinates->Y + Delta-(Delta>>3))*Pixels->Width,
-			};
-			for(int* index = indexes; index < indexes+16; index++){
-				Score += CheckColour(Pixels->Pixmap[*index], *index, Range);
-			}
-		}
-		else if(Mode == 1){
-			int x = Coordinates->X + Delta/2;
-			for(int y = Coordinates->Y; y < Coordinates->Y + Delta; y++){
-				Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
-			}
-			int y = Coordinates->Y + Delta/2;
-			for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
-				Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
-			}
-		}
-		else{
-			for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
+		switch(Mode){
+			case 2:;
+				int indexes[16] = {
+					(Coordinates->X + Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+					(Coordinates->X + 3*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+					(Coordinates->X + 5*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+					(Coordinates->X + 7*Delta/8)+(Coordinates->Y + Delta/8)*Pixels->Width,
+					(Coordinates->X + Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+					(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+					(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+					(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 3*Delta/8)*Pixels->Width,
+					(Coordinates->X + Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+					(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+					(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+					(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 5*Delta/8)*Pixels->Width,
+					(Coordinates->X + Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+					(Coordinates->X + 3*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+					(Coordinates->X + 5*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+					(Coordinates->X + 7*Delta/8)+(Coordinates->Y + 7*Delta/8)*Pixels->Width,
+				};
+				for(int* index = indexes; index < indexes+16; index++){
+					Score += CheckColour(Pixels->Pixmap[*index], *index, Range);
+				}
+				break;
+			case 1:;
+				int x = Coordinates->X + Delta/2;
 				for(int y = Coordinates->Y; y < Coordinates->Y + Delta; y++){
 					Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
 				}
-			}
+				int y = Coordinates->Y + Delta/2;
+				for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
+					Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
+				}
+				break;
+			default:
+				for(int x = Coordinates->X; x < Coordinates->X + Delta; x++){
+					for(int y = Coordinates->Y; y < Coordinates->Y + Delta; y++){
+						Score += CheckColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
+					}
+				}
 		}
 		return Score;
 	}
@@ -425,9 +407,9 @@ int main(int argc, char **argv){
 			{PCoordinate->X - 1, PCoordinate->Y, 0},
 			{PCoordinate->X, PCoordinate->Y - 1, 0},
 		};
-		for(int level = 1; level >= 0; level--){
+		for(int Mode = 1; Mode >= 0; Mode--){ //First converge by taking the score mode 1, then by taking the score mode 0
 			for(int i = 4; i--; ){
-				TempCoords[i].Score = GetScore(Pixels, &TempCoords[i], SquareSize, Range, level);
+				TempCoords[i].Score = GetScore(Pixels, &TempCoords[i], SquareSize, Range, Mode);
 				if(TempCoords[i].Score > PCoordinate->Score){
 					*PCoordinate = TempCoords[i];
 					Converge(Pixels, PCoordinate, SquareSize, Range);
@@ -453,19 +435,19 @@ int main(int argc, char **argv){
 		 *		BallDiameter:	Size of the ball
 		 *		Range:			Colour range of the ball
 		 */
-		coordinate TileAmount;
+		coordinate TileAmount; // First calculating how many tiles of the size of the ball to separate the table to.
 		TileAmount.X = (Table->Max.X-Table->Min.X) / BallDiameter + ((Table->Max.X-Table->Min.X) % BallDiameter == 0 ? 0: 1);
 		TileAmount.Y = (Table->Max.Y-Table->Min.Y) / BallDiameter + ((Table->Max.Y-Table->Min.Y) % BallDiameter == 0 ? 0: 1);
-		for(int TileY = TileAmount.Y; TileY--; ){
-			int y = Table->Min.Y + TileY*BallDiameter;
-			if(y+BallDiameter > Table->Max.Y) y -= y + BallDiameter - Table->Max.Y;
-			for(int TileX = TileAmount.X; TileX--; ){
-				int x = Table->Min.X + TileX*BallDiameter;
-				if(x+BallDiameter > Table->Max.X) x -= x + BallDiameter - Table->Max.X;
-				coordinate Tile = {x, y, 0};
-				if(GetScore(Pixels, &Tile, BallDiameter, Range, 2)){
+		for(int TileY = TileAmount.Y; TileY--; ){ //Iterating through the tiles
+			int y = Table->Min.Y + TileY*BallDiameter; //Calculating the y coordinate of the tile.
+			if(y+BallDiameter > Table->Max.Y) y = Table->Max.Y - BallDiameter; //Detect if the tile is too far down and rectify.
+			for(int TileX = TileAmount.X; TileX--; ){ //Iterating through the tiles
+				int x = Table->Min.X + TileX*BallDiameter; //Calculating the x coordinate of the tile.
+				if(x+BallDiameter > Table->Max.X) x = Table->Max.X - BallDiameter; ///Detect if the tile is too far right and rectify.
+				coordinate Tile = {x, y, 0};//Create the tile
+				if(GetScore(Pixels, &Tile, BallDiameter, Range, 2)){ //Detect if the tile is interesting by GetScore mode 2
 					Tile.Score = GetScore(Pixels, &Tile, BallDiameter, Range, 1);
-					Converge(Pixels, &Tile, BallDiameter, Range);
+					Converge(Pixels, &Tile, BallDiameter, Range); //Make tile converge to the best Score
 					if(Tile.Score > PBall->Score){
 						PBall->X = Tile.X;
 						PBall->Y = Tile.Y;
@@ -475,4 +457,3 @@ int main(int argc, char **argv){
 			}
 		}
 	}
-

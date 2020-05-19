@@ -12,9 +12,9 @@ ScoreSheet = figure(1);
 
 hold on
 
-plot(pos(:,1),pos(:,2),'color',[0.811765 0.313725 0.313725],'lineStyle','--');
-plot(pos(:,3),pos(:,4),'color',[0.772549 0.772549 0.274510],'lineStyle','--');
-plot(pos(:,5),pos(:,6),'color',[0.000000 0.000000 0.000000],'lineStyle','--');
+plot(pos(:,1),pos(:,2),'color',[1.000000 0.627451 0.627451],'lineStyle',' -');
+plot(pos(:,3),pos(:,4),'color',[1.000000 1.000000 0.686275],'lineStyle',' -');
+plot(pos(:,5),pos(:,6),'color',[0.000000 0.000000 0.000000],'lineStyle',' -');
 axis ij
 
 line([x_min x_max],[y_min y_min]);
@@ -69,27 +69,27 @@ band_touch_down = velleft(:,2*player_ball) > 0 & velright(:,2*player_ball) < 0 &
 ball_touch_a = (abs(acc(:,2*player_ball-1)) > 0 | abs(acc(:,2*player_ball)) > 0) & (abs(acc(:,2*ball_a-1)) > 0 | abs(acc(:,2*ball_a)) > 0) & ((pos(:,2*player_ball-1)-pos(:,2*ball_a-1)).^2 + (pos(:,2*player_ball)-pos(:,2*ball_a)).^2) < vel_comp_a.^2;
 ball_touch_b = (abs(acc(:,2*player_ball-1)) > 0 | abs(acc(:,2*player_ball)) > 0) & (abs(acc(:,2*ball_b-1)) > 0 | abs(acc(:,2*ball_b)) > 0) & ((pos(:,2*player_ball-1)-pos(:,2*ball_b-1)).^2 + (pos(:,2*player_ball)-pos(:,2*ball_b)).^2) < vel_comp_b.^2;
 
-band_touch_left_left = [band_touch_left(2:end);band_touch_left(end)];
-band_touch_right_left = [band_touch_right(2:end);band_touch_right(end)];
-band_touch_up_left = [band_touch_up(2:end);band_touch_up(end)];
-band_touch_down_left = [band_touch_down(2:end);band_touch_down(end)];
-ball_touch_a_left = [ball_touch_a(2:end);ball_touch_a(end)];
-ball_touch_b_left = [ball_touch_b(2:end);ball_touch_b(end)];
+band_touch_left_right = [band_touch_left(1);band_touch_left(1:end-1)];
+band_touch_right_right = [band_touch_right(1);band_touch_right(1:end-1)];
+band_touch_up_right = [band_touch_up(1);band_touch_up(1:end-1)];
+band_touch_down_right = [band_touch_down(1);band_touch_down(1:end-1)];
+ball_touch_a_right = [ball_touch_a(1);ball_touch_a(1:end-1)];
+ball_touch_b_right = [ball_touch_b(1);ball_touch_b(1:end-1)];
 
-band_touch_left(band_touch_left & band_touch_left_left) = 0;
-band_touch_right(band_touch_right & band_touch_right_left) = 0;
-band_touch_up(band_touch_up & band_touch_up_left) = 0;
-band_touch_down(band_touch_down & band_touch_down_left) = 0;
-ball_touch_a(ball_touch_a & ball_touch_a_left) = 0;
-ball_touch_b(ball_touch_b & ball_touch_b_left) = 0;
+band_touch_left(band_touch_left & band_touch_left_right) = 0;
+band_touch_right(band_touch_right & band_touch_right_right) = 0;
+band_touch_up(band_touch_up & band_touch_up_right) = 0;
+band_touch_down(band_touch_down & band_touch_down_right) = 0;
+ball_touch_a(ball_touch_a & ball_touch_a_right) = 0;
+ball_touch_b(ball_touch_b & ball_touch_b_right) = 0;
 
 band_touch=find(band_touch_left | band_touch_right | band_touch_up | band_touch_down);
 ball_touch_a = find(ball_touch_a);
 ball_touch_b = find(ball_touch_b);
 
-plot(pos(band_touch,2*player_ball-1),pos(band_touch,2*player_ball),'Marker','*','lineStyle','none','color',[0.000000 0.000000 0.000000]);
-plot(pos(ball_touch_a,2*player_ball-1),pos(ball_touch_a,2*player_ball),'Marker','o','lineStyle','none','color',[0.000000 0.000000 0.000000]);
-plot(pos(ball_touch_b,2*player_ball-1),pos(ball_touch_b,2*player_ball),'Marker','o','lineStyle','none','color',[0.000000 0.000000 0.000000]);
+plot(pos(band_touch,2*player_ball-1),pos(band_touch,2*player_ball),'Marker','*','lineStyle','none','color',[0.227451 1.000000 0.164706]);
+plot(pos(ball_touch_a,2*player_ball-1),pos(ball_touch_a,2*player_ball),'Marker','o','lineStyle','none','color',[0.000000 0.274510 1.000000]);
+plot(pos(ball_touch_b,2*player_ball-1),pos(ball_touch_b,2*player_ball),'Marker','o','lineStyle','none','color',[0.000000 0.274510 1.000000]);
 
 win = 0;
 
