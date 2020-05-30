@@ -16,12 +16,6 @@ clear;clc; close all
 pos = %s;
 ball_diam = %d;
 
-\%find border
-x_min = min(min(pos(:,[1 3 5])));
-x_max = max(max(pos(:,[1 3 5])));
-y_min = min(min(pos(:,[2 4 6])));
-y_max = max(max(pos(:,[2 4 6])));
-
 
 \%solve outliers
 pos(:,1) = pos(:,1).*~(isoutlier(pos(:,1),'movmedian',5)&isoutlier(pos(:,2),'movmedian',5))+(isoutlier(pos(:,1),'movmedian',5)&isoutlier(pos(:,2),'movmedian',5)).*([pos(2:end,1);pos(end,1)]+[pos(end,1);pos(1:end-1,1)])/2;
@@ -30,6 +24,13 @@ pos(:,3) = pos(:,3).*~(isoutlier(pos(:,3),'movmedian',5)&isoutlier(pos(:,4),'mov
 pos(:,4) = pos(:,4).*~(isoutlier(pos(:,3),'movmedian',5)&isoutlier(pos(:,4),'movmedian',5))+(isoutlier(pos(:,3),'movmedian',5)&isoutlier(pos(:,4),'movmedian',5)).*([pos(2:end,4);pos(end,4)]+[pos(end,4);pos(1:end-1,4)])/2;
 pos(:,5) = pos(:,5).*~(isoutlier(pos(:,5),'movmedian',5)&isoutlier(pos(:,6),'movmedian',5))+(isoutlier(pos(:,5),'movmedian',5)&isoutlier(pos(:,6),'movmedian',5)).*([pos(2:end,5);pos(end,5)]+[pos(end,5);pos(1:end-1,5)])/2;
 pos(:,6) = pos(:,6).*~(isoutlier(pos(:,5),'movmedian',5)&isoutlier(pos(:,6),'movmedian',5))+(isoutlier(pos(:,5),'movmedian',5)&isoutlier(pos(:,6),'movmedian',5)).*([pos(2:end,6);pos(end,6)]+[pos(end,6);pos(1:end-1,6)])/2;
+
+
+\%find border
+x_min = min(min(pos(:,[1 3 5])));
+x_max = max(max(pos(:,[1 3 5])));
+y_min = min(min(pos(:,[2 4 6])));
+y_max = max(max(pos(:,[2 4 6])));
 
 
 \%plot data
