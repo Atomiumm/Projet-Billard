@@ -18,12 +18,9 @@ ball_diam = %d;
 
 
 \%solve outliers
-pos(:,1) = pos(:,1).*~(isoutlier(pos(:,1),'movmedian',5)&isoutlier(pos(:,2),'movmedian',5))+(isoutlier(pos(:,1),'movmedian',5)&isoutlier(pos(:,2),'movmedian',5)).*([pos(2:end,1);pos(end,1)]+[pos(end,1);pos(1:end-1,1)])/2;
-pos(:,2) = pos(:,2).*~(isoutlier(pos(:,1),'movmedian',5)&isoutlier(pos(:,2),'movmedian',5))+(isoutlier(pos(:,1),'movmedian',5)&isoutlier(pos(:,2),'movmedian',5)).*([pos(2:end,2);pos(end,2)]+[pos(end,2);pos(1:end-1,2)])/2;
-pos(:,3) = pos(:,3).*~(isoutlier(pos(:,3),'movmedian',5)&isoutlier(pos(:,4),'movmedian',5))+(isoutlier(pos(:,3),'movmedian',5)&isoutlier(pos(:,4),'movmedian',5)).*([pos(2:end,3);pos(end,3)]+[pos(end,3);pos(1:end-1,3)])/2;
-pos(:,4) = pos(:,4).*~(isoutlier(pos(:,3),'movmedian',5)&isoutlier(pos(:,4),'movmedian',5))+(isoutlier(pos(:,3),'movmedian',5)&isoutlier(pos(:,4),'movmedian',5)).*([pos(2:end,4);pos(end,4)]+[pos(end,4);pos(1:end-1,4)])/2;
-pos(:,5) = pos(:,5).*~(isoutlier(pos(:,5),'movmedian',5)&isoutlier(pos(:,6),'movmedian',5))+(isoutlier(pos(:,5),'movmedian',5)&isoutlier(pos(:,6),'movmedian',5)).*([pos(2:end,5);pos(end,5)]+[pos(end,5);pos(1:end-1,5)])/2;
-pos(:,6) = pos(:,6).*~(isoutlier(pos(:,5),'movmedian',5)&isoutlier(pos(:,6),'movmedian',5))+(isoutlier(pos(:,5),'movmedian',5)&isoutlier(pos(:,6),'movmedian',5)).*([pos(2:end,6);pos(end,6)]+[pos(end,6);pos(1:end-1,6)])/2;
+pos(:,1:2) = pos(:,1:2).*~(isoutlier(pos(:,1),'movmedian',5)&isoutlier(pos(:,2),'movmedian',5))+(isoutlier(pos(:,1),'movmedian',5)&isoutlier(pos(:,2),'movmedian',5)).*([pos(2:end,1:2);pos(end,1:2)]+[pos(end,1:2);pos(1:end-1,1:2)])/2;
+pos(:,3:4) = pos(:,3:4).*~(isoutlier(pos(:,3),'movmedian',5)&isoutlier(pos(:,4),'movmedian',5))+(isoutlier(pos(:,3),'movmedian',5)&isoutlier(pos(:,4),'movmedian',5)).*([pos(2:end,3:4);pos(end,3:4)]+[pos(end,3:4);pos(1:end-1,3:4)])/2;
+pos(:,5:6) = pos(:,5:6).*~(isoutlier(pos(:,5),'movmedian',5)&isoutlier(pos(:,6),'movmedian',5))+(isoutlier(pos(:,5),'movmedian',5)&isoutlier(pos(:,6),'movmedian',5)).*([pos(2:end,5:6);pos(end,5:6)]+[pos(end,5:6);pos(1:end-1,5:6)])/2;
 
 
 \%find border
@@ -66,15 +63,15 @@ TouchBandTop = ([0;diff(sign(speed(:,2*FirstBall)));0] > 0) & (abs(pos(:,2*First
 
 \%detect ball touch
 BallTouch = [];
-if FirstBall ~= 1 & find(sum(abs(pos(:,1:2)-pos(1,1:2))')'>4,1)
+if FirstBall ~= 1 && find(sum(abs(pos(:,1:2)-pos(1,1:2))')'>4,1)
     temp = circshift(sum(abs(pos(:,1:2)-pos(1,1:2))')'>4,-3).*sqrt((pos(:,1)-pos(:,2*FirstBall-1)).^2+(pos(:,2)-pos(:,2*FirstBall)).^2).*(sqrt((pos(:,1)-pos(:,2*FirstBall-1)).^2+(pos(:,2)-pos(:,2*FirstBall)).^2)<(ball_diam*sqrt(1+abs([0;speed(:,2*FirstBall-1)]))));
     BallTouch(length(BallTouch)+1) = find(islocalmin(temp+1e20*(temp==0)),1);
 end
-if FirstBall ~= 2 & find(sum(abs(pos(:,3:4)-pos(1,3:4))')'>4,1)
+if FirstBall ~= 2 && find(sum(abs(pos(:,3:4)-pos(1,3:4))')'>4,1)
     temp = circshift(sum(abs(pos(:,3:4)-pos(1,3:4))')'>4,-3).*sqrt((pos(:,3)-pos(:,2*FirstBall-1)).^2+(pos(:,4)-pos(:,2*FirstBall)).^2).*(sqrt((pos(:,3)-pos(:,2*FirstBall-1)).^2+(pos(:,4)-pos(:,2*FirstBall)).^2)<(ball_diam*sqrt(1+abs([0;speed(:,2*FirstBall-1)]))));
     BallTouch(length(BallTouch)+1) = find(islocalmin(temp+1e20*(temp==0)),1);
 end
-if FirstBall ~= 3 & find(sum(abs(pos(:,5:6)-pos(1,5:6))')'>4,1)
+if FirstBall ~= 3 && find(sum(abs(pos(:,5:6)-pos(1,5:6))')'>4,1)
     temp = circshift(sum(abs(pos(:,5:6)-pos(1,5:6))')'>4,-3).*sqrt((pos(:,5)-pos(:,2*FirstBall-1)).^2+(pos(:,6)-pos(:,2*FirstBall)).^2).*(sqrt((pos(:,5)-pos(:,2*FirstBall-1)).^2+(pos(:,6)-pos(:,2*FirstBall)).^2)<(ball_diam*sqrt(1+abs([0;speed(:,2*FirstBall-1)]))));
     BallTouch(length(BallTouch)+1) = find(islocalmin(temp+1e20*(temp==0)),1);
 end
