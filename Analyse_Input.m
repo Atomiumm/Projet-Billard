@@ -49,7 +49,7 @@ line([x_max x_max],[y_min y_max]);
 
 \%creation of arrays of interest
 speed = diff(pos);
-SqrtSpeed = [sqrt(speed(:,1).^2+speed(:,2).^2), sqrt(speed(:,3).^2+speed(:,4).^2), sqrt(speed(:,5).^2+speed(:,6).^2)];
+\% AbsSpeed = [sqrt(speed(:,1).^2+speed(:,2).^2), sqrt(speed(:,3).^2+speed(:,4).^2), sqrt(speed(:,5).^2+speed(:,6).^2)];
 
 
 \%detect first ball
@@ -66,30 +66,30 @@ TouchBandTop = ([0;diff(sign(speed(:,2*FirstBall)));0] > 0) & (abs(pos(:,2*First
 
 \%detect ball touch
 BallTouch = [];
-if FirstBall ~= 1 && find(sum(abs(pos(:,1:2)-pos(1,1:2))')'>4,1)
+if FirstBall ~= 1 & find(sum(abs(pos(:,1:2)-pos(1,1:2))')'>4,1)
     temp = circshift(sum(abs(pos(:,1:2)-pos(1,1:2))')'>4,-3).*sqrt((pos(:,1)-pos(:,2*FirstBall-1)).^2+(pos(:,2)-pos(:,2*FirstBall)).^2).*(sqrt((pos(:,1)-pos(:,2*FirstBall-1)).^2+(pos(:,2)-pos(:,2*FirstBall)).^2)<(ball_diam*sqrt(1+abs([0;speed(:,2*FirstBall-1)]))));
     BallTouch(length(BallTouch)+1) = find(islocalmin(temp+1e20*(temp==0)),1);
 end
-if FirstBall ~= 2 && find(sum(abs(pos(:,3:4)-pos(1,3:4))')'>4,1)
+if FirstBall ~= 2 & find(sum(abs(pos(:,3:4)-pos(1,3:4))')'>4,1)
     temp = circshift(sum(abs(pos(:,3:4)-pos(1,3:4))')'>4,-3).*sqrt((pos(:,3)-pos(:,2*FirstBall-1)).^2+(pos(:,4)-pos(:,2*FirstBall)).^2).*(sqrt((pos(:,3)-pos(:,2*FirstBall-1)).^2+(pos(:,4)-pos(:,2*FirstBall)).^2)<(ball_diam*sqrt(1+abs([0;speed(:,2*FirstBall-1)]))));
     BallTouch(length(BallTouch)+1) = find(islocalmin(temp+1e20*(temp==0)),1);
 end
-if FirstBall ~= 3 && find(sum(abs(pos(:,5:6)-pos(1,5:6))')'>4,1)
+if FirstBall ~= 3 & find(sum(abs(pos(:,5:6)-pos(1,5:6))')'>4,1)
     temp = circshift(sum(abs(pos(:,5:6)-pos(1,5:6))')'>4,-3).*sqrt((pos(:,5)-pos(:,2*FirstBall-1)).^2+(pos(:,6)-pos(:,2*FirstBall)).^2).*(sqrt((pos(:,5)-pos(:,2*FirstBall-1)).^2+(pos(:,6)-pos(:,2*FirstBall)).^2)<(ball_diam*sqrt(1+abs([0;speed(:,2*FirstBall-1)]))));
     BallTouch(length(BallTouch)+1) = find(islocalmin(temp+1e20*(temp==0)),1);
 end
 
 
 \%clean up
-TouchBandLeft(1:min(BallTouch)) = 0*TouchBandLeft(1:min(BallTouch));
-TouchBandRight(1:min(BallTouch)) = 0*TouchBandRight(1:min(BallTouch));
-TouchBandBottom(1:min(BallTouch)) = 0*TouchBandBottom(1:min(BallTouch));
-TouchBandTop(1:min(BallTouch)) = 0*TouchBandTop(1:min(BallTouch));
+TouchBandLeft(1:min(BallTouch)) = zeros(size(TouchBandLeft(1:min(BallTouch))));
+TouchBandRight(1:min(BallTouch)) = zeros(size(TouchBandRight(1:min(BallTouch))));
+TouchBandBottom(1:min(BallTouch)) = zeros(size(TouchBandBottom(1:min(BallTouch))));
+TouchBandTop(1:min(BallTouch)) = zeros(size(TouchBandTop(1:min(BallTouch))));
 if length(BallTouch) > 1
-    TouchBandLeft(max(BallTouch):end) = 0*TouchBandLeft(max(BallTouch):end);
-    TouchBandRight(max(BallTouch):end) = 0*TouchBandRight(max(BallTouch):end);
-    TouchBandBottom(max(BallTouch):end) = 0*TouchBandBottom(max(BallTouch):end);
-    TouchBandTop(max(BallTouch):end) = 0*TouchBandTop(max(BallTouch):end);
+    TouchBandLeft(max(BallTouch):end) = zeros(size(TouchBandLeft(max(BallTouch):end)));
+    TouchBandRight(max(BallTouch):end) = zeros(size(TouchBandRight(max(BallTouch):end)));
+    TouchBandBottom(max(BallTouch):end) = zeros(size(TouchBandBottom(max(BallTouch):end)));
+    TouchBandTop(max(BallTouch):end) = zeros(size(TouchBandTop(max(BallTouch):end)));
 end
 
 
