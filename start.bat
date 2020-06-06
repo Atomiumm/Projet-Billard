@@ -1,3 +1,0 @@
-cls
-gcc -Ofast Pix2PosSimple.c -Wall -o Pix2Pos
-Pix2Pos.exe 94 412 126 744 160 255 0 160 0 160 140 255 140 255 0 175 100 255 100 255 100 255 39 62 91 116 202 255 11
