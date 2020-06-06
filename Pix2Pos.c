@@ -43,7 +43,7 @@
 
 	typedef struct ball_t {colourRange_t *Range; coordinate_t Coordinates;} ball_t;
 
-	typedef struct pixmap_t {unsigned int Width, Height, *Pixmap;} pixmap_t;
+	typedef struct pixmap_t {unsigned int Width, Height; colour_t *Pixmap;} pixmap_t;
 
 
 
@@ -51,9 +51,9 @@
 	/*Utils*/
 		int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *File);
 
-		colour_t int2Colour(int colourInt);
+		void int2Colour(unsigned int *colourInt, pixmap_t *Pixels);
 
-		int checkColour(int pixel, int index, colourRange_t *Range);
+		int checkColour(colour_t PixelColour, colourRange_t *Range);
 
 		coordinateRange_t buildNeighbourhood(coordinate_t *Center, coordinateRange_t *Limits, int size, int offset);
 
@@ -216,13 +216,18 @@ int main(int argc, char **argv){
 				return -1;
 			}
 		/*Read the pixels and close the file*/
-			Pixels->Pixmap = malloc(sizeof(unsigned int)*(Pixels->Width*Pixels->Height+1));
-			if(readFile(Pixels->Pixmap, sizeof(unsigned int), Pixels->Width*Pixels->Height, 1, PixmapBin)){
+			unsigned int *pixmap = malloc(sizeof(unsigned int)*(Pixels->Width*Pixels->Height+1));
+			Pixels->Pixmap = malloc(sizeof(colour_t)*(Pixels->Width*Pixels->Height));
+			if(pixmap == NULL || Pixels->Pixmap == NULL) {fprintf(stderr, "Error : Allocation problem.\n"); free(pixmap); free(Pixels->Pixmap); return -1;}
+			if(readFile(pixmap, sizeof(unsigned int), Pixels->Width*Pixels->Height, 1, PixmapBin)){
 				free(Pixels->Pixmap);
+				free(pixmap);
 				if(fclose(PixmapBin)) perror("Error : couldn't close Pixmap.bin");
 				return -1;
 			}
-			if(fclose(PixmapBin)){perror("Error : couldn't close Pixmap.bin"); return -1;}
+			int2Colour(pixmap, Pixels);
+			free(pixmap);
+			if(fclose(PixmapBin)){perror("Error : couldn't close Pixmap.bin"); free(Pixels->Pixmap); free(pixmap); return -1;}
 			return 0;
 	}
 
@@ -296,17 +301,18 @@ int main(int argc, char **argv){
 	 *	Output:			
 	 *		ColourRGB:		Colour RGB
 	 */
-	colour_t int2Colour(int colourInt) {
-		colour_t ColourRGB = {-1, -1, -1};
-		/*Detecting if int not in correct range*/
-			if(colourInt < 0 || colourInt > 16777215){
-				return ColourRGB;
+	void int2Colour(unsigned int *colourInt, pixmap_t *Pixels) {
+		for(int i = 0; i < Pixels->Width * Pixels->Height; i++){
+			if(colourInt[i] < 0 || colourInt[i] > 16777215){
+				fprintf(stderr, "Error: Pixel error at index %d setting to black\n", i);
+				colourInt[i] = 0;
 			}
-		/*Calculating colour*/
-			ColourRGB.R = (colourInt & 0x00FF0000) >> 16;
-			ColourRGB.G = (colourInt & 0x0000FF00) >> 8;
-			ColourRGB.B = (colourInt & 0x000000FF);
-		return ColourRGB;
+			else{
+				Pixels->Pixmap[i].R = (colourInt[i] & 0x00FF0000) >> 16;
+				Pixels->Pixmap[i].G = (colourInt[i] & 0x0000FF00) >> 8;
+				Pixels->Pixmap[i].B = (colourInt[i] & 0x000000FF);
+			}
+		}
 	}
 
 	/*
@@ -323,9 +329,7 @@ int main(int argc, char **argv){
 	 *	Errors:
 	 *						Pixel colour invalid
 	 */
-	int checkColour(int pixel, int index, colourRange_t *Range){
-		colour_t PixelColour = int2Colour(pixel);
-		if(PixelColour.R < 0 || PixelColour.G < 0 || PixelColour.B < 0) fprintf(stderr, "Error : colour error at pixel %d ignoring pixel\n", index);
+	int checkColour(colour_t PixelColour, colourRange_t *Range){
 		if(PixelColour.R >= Range->Min.R && PixelColour.R <= Range->Max.R 
 			&& PixelColour.G >= Range->Min.G && PixelColour.G <= Range->Max.G 
 			&& PixelColour.B >= Range->Min.B && PixelColour.B <= Range->Max.B) 
@@ -376,23 +380,23 @@ int main(int argc, char **argv){
 					(Coordinates->X + 7*delta/8)+(Coordinates->Y + 7*delta/8)*Pixels->Width,
 				};
 				for(int* index = indexes; index < indexes+16; index++){
-					Score += checkColour(Pixels->Pixmap[*index], *index, Range);
+					Score += checkColour(Pixels->Pixmap[*index], Range);
 				}
 				break;
 			case 1:;
 				int x = Coordinates->X + delta/2;
 				for(int y = Coordinates->Y; y < Coordinates->Y + delta; y++){
-					Score += checkColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
+					Score += checkColour(Pixels->Pixmap[x + y*Pixels->Width], Range);
 				}
 				int y = Coordinates->Y + delta/2;
 				for(int x = Coordinates->X; x < Coordinates->X + delta; x++){
-					Score += checkColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
+					Score += checkColour(Pixels->Pixmap[x + y*Pixels->Width], Range);
 				}
 				break;
 			default:
 				for(int x = Coordinates->X; x < Coordinates->X + delta; x++){
 					for(int y = Coordinates->Y; y < Coordinates->Y + delta; y++){
-						Score += checkColour(Pixels->Pixmap[x + y*Pixels->Width], x + y*Pixels->Width, Range);
+						Score += checkColour(Pixels->Pixmap[x + y*Pixels->Width], Range);
 					}
 				}
 		}
