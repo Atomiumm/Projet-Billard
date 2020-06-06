@@ -1,3 +1,23 @@
+/%
+/%	File:				Analysis_Input.m
+/%
+/%	Description: 		Analysis of succesive ball positions
+/%	
+/%	Full Description: 	Takes the list of succesive positions of the ball. 
+/%						Detects the player ball. 
+/%						Computes the collision with other balls and billard bands.
+/%						Conclude on the sequence outcome. 
+/%						Stores diagnosis in ScoreSheet.pdf
+/%
+/%	Dependancy:			none
+/%
+/%	Authors:			Dufour Edouard; Rochet Corentin		No copyright
+/%
+/%	Version:			3.2.7
+/%
+/%	Revision:			06.06.2020, ED, Updated outlier detection method
+/%
+
 clear;clc; close all
 
 \%F1
@@ -130,7 +150,7 @@ if FirstBall == 1
     Player = "Red";
 elseif FirstBall == 2
     Player = "Yellow";
-elseif FirstBall == 3
+else
     Player = "White";
 end
 
