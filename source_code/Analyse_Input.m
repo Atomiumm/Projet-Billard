@@ -154,5 +154,5 @@ set(gcf, 'PaperUnits', 'centimeters', 'Units', 'centimeters');
 set(gcf, 'PaperSize', [29.7 21]);
 set(gcf, 'Position', [0.5 0.5 28.7 20]);
 
-saveas(ScoreSheet,'ScoreSheet','pdf');
-open('ScoreSheet.pdf');
+saveas(ScoreSheet,'..\\ScoreSheet','pdf');
+open('..\\ScoreSheet.pdf');
