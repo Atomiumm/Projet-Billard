@@ -1,5 +1,5 @@
 /*
- *	File:				Pix2Pos.c
+ *	File:				Pix2PosWithMemory.c
  *
  *	Description: 		Billiard configuration analysis: Balls finder
  *	
@@ -51,6 +51,8 @@
 		int readFile(unsigned int *ptr, int size, int amount, _Bool addition, FILE *File);
 		void int2Colour(unsigned int *colourInt, pixmap_t *Pixels);
 	int findAllBalls(pixmap_t *Pixels, coordinateRange_t *Table, ball_t *Red, ball_t *Yellow, ball_t *White, int ballDiameter);
+		void findBallsWithMemory(pixmap_t *Pixels, coordinateRange_t *Table, ball_t *Red, ball_t *Yellow, ball_t *White, int ballDiameter);
+		coordinateRange_t buildNeighbourhood(coordinate_t *Center, coordinateRange_t *Limits, int size, int offset);
 		void findBall(pixmap_t *Pixels, ball_t *PBall, coordinateRange_t *Table, int ballDiameter);
 		void converge(pixmap_t *Pixels, coordinate_t *PCoordinate, int squareSize, colourRange_t *Range, coordinateRange_t *Limit);
 		int getScore(pixmap_t *Pixels, coordinate_t *Coordinates, int delta, colourRange_t *Range, int mode);
@@ -314,7 +316,8 @@ int main(int argc, char **argv){
 	 *
 	 *	Description:		Finds all the balls
 	 *
-	 *	Full Description:	Looks for the balls on the table.
+	 *	Full Description:	Checks memory for past balls. 
+	 *						Searches in whole table if not found yet.
 	 *						Checks if the balls are found and if they are overlapping.
 	 *
 	 *	Inputs:
@@ -327,20 +330,81 @@ int main(int argc, char **argv){
 	 *						Balls overlapping
 	 */
 	int findAllBalls(pixmap_t *Pixels, coordinateRange_t *Table, ball_t *Red, ball_t *Yellow, ball_t *White, int ballDiameter){
-		findBall(Pixels, Red, Table, ballDiameter);
-		findBall(Pixels, Yellow, Table, ballDiameter);
-		findBall(Pixels, White, Table, ballDiameter);
-		free(Pixels->Pixmap);
-		if(Red->Coordinates.Score < 0) {fprintf(stderr, "Error : red ball missing\n"); return -1;}
-		if(Yellow->Coordinates.Score < 0) {fprintf(stderr, "Error : yellow ball missing\n"); return -1;}
-		if(White->Coordinates.Score < 0) {fprintf(stderr, "Error : white ball missing\n"); return -1;}
-		if(abs(Red->Coordinates.X - White->Coordinates.X) < ballDiameter && abs(Red->Coordinates.Y - White->Coordinates.Y) < ballDiameter)
-			fprintf(stderr, "Error : white ball and red ball overlapping. Continuing\n");
-		if(abs(Red->Coordinates.X - Yellow->Coordinates.X) < ballDiameter && abs(Red->Coordinates.Y - Yellow->Coordinates.Y) < ballDiameter)
-			fprintf(stderr, "Error : yellow ball and red ball overlapping. Continuing\n");
-		if(abs(Yellow->Coordinates.X - White->Coordinates.X) < ballDiameter && abs(Yellow->Coordinates.Y - White->Coordinates.Y) < ballDiameter)
-			fprintf(stderr, "Error : white ball and yellow ball overlapping. Continuing\n");
-		return 0;
+		findBallsWithMemory(Pixels, Table, Red, Yellow, White, ballDiameter);
+		/*If the balls are not yet found, try to find them on the whole table*/
+			if(Red->Coordinates.Score < 7*ballDiameter*ballDiameter/10) findBall(Pixels, Red, Table, ballDiameter);
+			if(Yellow->Coordinates.Score < 7*ballDiameter*ballDiameter/10) findBall(Pixels, Yellow, Table, ballDiameter);
+			if(White->Coordinates.Score < 7*ballDiameter*ballDiameter/10) findBall(Pixels, White, Table, ballDiameter);
+			free(Pixels->Pixmap);
+		/*Check if the balls are all here and if they are overlapping*/
+			if(Red->Coordinates.Score < 0) {fprintf(stderr, "Error : red ball missing\n"); return -1;}
+			if(Yellow->Coordinates.Score < 0) {fprintf(stderr, "Error : yellow ball missing\n"); return -1;}
+			if(White->Coordinates.Score < 0) {fprintf(stderr, "Error : white ball missing\n"); return -1;}
+
+			if(abs(Red->Coordinates.X - White->Coordinates.X) < ballDiameter && abs(Red->Coordinates.Y - White->Coordinates.Y) < ballDiameter)
+				fprintf(stderr, "Error : white ball and red ball overlapping. Continuing\n");
+			if(abs(Red->Coordinates.X - Yellow->Coordinates.X) < ballDiameter && abs(Red->Coordinates.Y - Yellow->Coordinates.Y) < ballDiameter)
+				fprintf(stderr, "Error : yellow ball and red ball overlapping. Continuing\n");
+			if(abs(Yellow->Coordinates.X - White->Coordinates.X) < ballDiameter && abs(Yellow->Coordinates.Y - White->Coordinates.Y) < ballDiameter)
+				fprintf(stderr, "Error : white ball and yellow ball overlapping. Continuing\n");
+			return 0;
+	}
+
+	/*
+	 *	Name:				findBallsWithMemory
+	 *
+	 *	Description:		Looks for the balls in the neighbourhood of the memory
+	 *
+	 *	Full Description:	Checks memory for past balls. 
+	 *						Tries to find them in a neighbourhood.
+	 *
+	 *	Inputs:
+	 *		Pixels:			Image data
+	 *		Table:			Area on which to search
+	 *		Red/Yellow/White:	Ball Data
+	 *		ballDiameter:	Size of the ball
+	 */
+	void findBallsWithMemory(pixmap_t *Pixels, coordinateRange_t *Table, ball_t *Red, ball_t *Yellow, ball_t *White, int ballDiameter){
+		FILE *PosTxt;
+		PosTxt = fopen("Pos.txt", "r");
+		if(PosTxt != NULL){
+			coordinate_t Temp = {-1, -1, -1};
+			if(3 == fscanf(PosTxt, "Red: %d, %d, %d\n", &(Temp.X), &(Temp.Y), &(Temp.Score))){
+				coordinateRange_t Neighbourhood = buildNeighbourhood(&Temp, Table, 2*ballDiameter, ballDiameter);
+				findBall(Pixels, Red, &Neighbourhood, ballDiameter);
+			}
+			if(3 == fscanf(PosTxt, "Yellow: %d, %d, %d\n", &(Temp.X), &(Temp.Y), &(Temp.Score))){
+				coordinateRange_t Neighbourhood = buildNeighbourhood(&Temp, Table, 2*ballDiameter, ballDiameter);
+				findBall(Pixels, Yellow, &Neighbourhood, ballDiameter);
+			}
+			if(3 == fscanf(PosTxt, "White: %d, %d, %d\n", &(Temp.X), &(Temp.Y), &(Temp.Score))){
+				coordinateRange_t Neighbourhood = buildNeighbourhood(&Temp, Table, 2*ballDiameter, ballDiameter);
+				findBall(Pixels, White, &Neighbourhood, ballDiameter);
+			}
+			if(fclose(PosTxt)) perror("Error: couldn't close Pos.txt");
+		}
+	}
+
+	/*
+	 *	Name:				buildNeighbourhood
+	 *
+	 *	Description:		Builds a coordinate range of given size around a given point while staying in a given coordinate range
+	 *
+	 *	Inputs:
+	 *		Center:			Center of the neighbourhood to build
+	 *		Limits:			Limits the built neighbourhood shouldn't cross
+	 *		size:			Size of the neighbourhood
+	 *		offset:			offset of the center of the neighbourhood
+	 *	Output:			
+	 *		Neighbourhood:	Built neighbourhood
+	 */
+	coordinateRange_t buildNeighbourhood(coordinate_t *Center, coordinateRange_t *Limits, int size, int offset){
+		coordinateRange_t Neighbourhood;
+		Neighbourhood.Min.X = (Center->X - size) < Limits->Min.X ? Limits->Min.X : Center->X - size;
+		Neighbourhood.Max.X = (Center->X + size + offset) > Limits->Max.X ? Limits->Max.X : Center->X + size + offset;
+		Neighbourhood.Min.Y = (Center->Y - size) < Limits->Min.Y ? Limits->Min.Y : Center->Y - size;
+		Neighbourhood.Max.Y = (Center->Y + size + offset) > Limits->Max.Y ? Limits->Max.Y : Center->Y + size + offset;
+		return Neighbourhood;
 	}
 
 	/*
