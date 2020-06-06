@@ -422,11 +422,14 @@ int main(int argc, char **argv){
 	 *		ballDiameter:	Size of the ball
 	 */
 	void findBall(pixmap_t *Pixels, ball_t *PBall, coordinateRange_t *Table, int ballDiameter){
+		//used to calculate x and y coordinates from tile number
+		//limits the coordinates to inside the table
 		int getCoordinate(int min, int max, int size, int position){
 			int x = min + position*size;
 			if(x+size > max) x = max - size;
 			return x;
 		}
+		//calculates the number of tiles (x and y directions)
 		coordinate_t TileAmount = {
 			ceil((Table->Max.X-Table->Min.X) / (double)ballDiameter),
 			ceil((Table->Max.Y-Table->Min.Y) / (double)ballDiameter)
