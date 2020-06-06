@@ -20,8 +20,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <math.h>
 
 #define MIN_BALL_DIAMETER 5
 #define MAX_BALL_DIAMETER 20
@@ -330,11 +328,9 @@ int main(int argc, char **argv){
 	 *						Pixel colour invalid
 	 */
 	int checkColour(colour_t PixelColour, colourRange_t *Range){
-		if(PixelColour.R >= Range->Min.R && PixelColour.R <= Range->Max.R 
+		return (PixelColour.R >= Range->Min.R && PixelColour.R <= Range->Max.R 
 			&& PixelColour.G >= Range->Min.G && PixelColour.G <= Range->Max.G 
-			&& PixelColour.B >= Range->Min.B && PixelColour.B <= Range->Max.B) 
-				return 1;
-		else return 0;
+			&& PixelColour.B >= Range->Min.B && PixelColour.B <= Range->Max.B);
 	}
 
 	/*
