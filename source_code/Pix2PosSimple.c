@@ -175,6 +175,7 @@ int writePosTxt(coordinate_t *Red, coordinate_t *Yellow, coordinate_t *White){
 		return -1;
 	}
 	if(fclose(PosTxt)){perror("J'ai eu tellement de mal a ouvrir le fichier Pixmap.bin que je refuse de le fermer!"); return -1;}
+	fprintf(stdout, "J'ai réussi! Ma vie a enfin un sens!\n");
 	return 0;
 }
 
