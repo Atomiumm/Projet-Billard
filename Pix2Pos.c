@@ -20,8 +20,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <math.h>
 
 #define MIN_BALL_DIAMETER 5
 #define MAX_BALL_DIAMETER 20
