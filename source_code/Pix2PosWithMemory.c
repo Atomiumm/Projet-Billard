@@ -3,13 +3,13 @@
  *
  *	Description: 		Billiard configuration analysis: Balls finder
  *	
- *	Full Description: 	Reads a Pixmap.bin file. 
+ *	Full Description: 	Reads a pixmap.bin file. 
  *						Reads the image data. 
  *						Separates the image in tiles.
  *						Makes the interesting tiles converge to the balls. 
- *						Stores the ball coordinates in Pos.txt
+ *						Stores the ball coordinates in pos.txt
  *
- *	Dependancy:			Pixmap.bin
+ *	Dependancy:			pixmap.bin
  *
  *	Authors:			Dufour Edouard; Rochet Corentin		No copyright
  *
@@ -73,11 +73,11 @@ int main(int argc, char **argv){
 		ball_t White = {&WBall, {-1, -1, -1}};
 	/*Read arguments*/
 		if(readCommandLine(argc, argv, &Table, &RBall, &YBall, &WBall, &BG, &ballDiameter)) return -1;
-	/*Read Pixmap.bin*/
+	/*Read pixmap.bin*/
 		if(readPixmap(&Pixels, &Table)) return -1;
 	/*Find the balls*/
 		if(findAllBalls(&Pixels, &Table, &Red, &Yellow, &White, ballDiameter)) return -1;
-	/*Open and write in Pos.txt*/
+	/*Open and write in pos.txt*/
 		if(writePosTxt(&Red, &Yellow, &White)) return -1;
 	return 0;
 }
@@ -183,22 +183,22 @@ int main(int argc, char **argv){
 	 *	Return:			
 	 *		return:			0 if all worked perfectly, else -1
 	 *	Error:
-	 *						Couldn't open Pixmap.bin
-	 *						Couldn't close Pixmap.bin
+	 *						Couldn't open pixmap.bin
+	 *						Couldn't close pixmap.bin
 	 */
 	int readPixmap(pixmap_t *Pixels, coordinateRange_t *Table){
 		FILE *PixmapBin;
-		PixmapBin = fopen("Pixmap.bin", "rb");
+		PixmapBin = fopen("pixmap.bin", "rb");
 		if(PixmapBin == NULL){
-			perror("Error : couldn't open Pixmap.bin");
+			perror("Error : couldn't open pixmap.bin");
 			return -1;
 		}
 		if(readImageSize(Pixels, Table, PixmapBin)) goto problem;
 		if(readPixels(Pixels, PixmapBin)) goto problem;
-		if(fclose(PixmapBin)) perror("Error : couldn't close Pixmap.bin");
+		if(fclose(PixmapBin)) perror("Error : couldn't close pixmap.bin");
 		return 0;
 
-		problem : {if(fclose(PixmapBin)) perror("Error : couldn't close Pixmap.bin"); return -1;}
+		problem : {if(fclose(PixmapBin)) perror("Error : couldn't close pixmap.bin"); return -1;}
 	}
 
 	/*
@@ -366,7 +366,7 @@ int main(int argc, char **argv){
 	 */
 	void findBallsWithMemory(pixmap_t *Pixels, coordinateRange_t *Table, ball_t *Red, ball_t *Yellow, ball_t *White, int ballDiameter){
 		FILE *PosTxt;
-		PosTxt = fopen("Pos.txt", "r");
+		PosTxt = fopen("pos.txt", "r");
 		if(PosTxt != NULL){
 			coordinate_t Temp = {-1, -1, -1};
 			if(3 == fscanf(PosTxt, "Red: %d, %d, %d\n", &(Temp.X), &(Temp.Y), &(Temp.Score))){
@@ -381,7 +381,7 @@ int main(int argc, char **argv){
 				coordinateRange_t Neighbourhood = buildNeighbourhood(&Temp, Table, 2*ballDiameter, ballDiameter);
 				findBall(Pixels, White, &Neighbourhood, ballDiameter);
 			}
-			if(fclose(PosTxt)) perror("Error: couldn't close Pos.txt");
+			if(fclose(PosTxt)) perror("Error: couldn't close pos.txt");
 		}
 	}
 
@@ -572,20 +572,20 @@ int main(int argc, char **argv){
 	/*
 	 *	Name:				writePosTxt
 	 *
-	 *	Description:		Writes the ball data in Pos.txt
+	 *	Description:		Writes the ball data in pos.txt
 	 *
 	 *	Inputs:
 	 *		Red/Yellow/White 	Ball data
 	 *	Errors:
-	 *						Couldn't open Pos.txt
-	 *						Couldn't close Pos.txt
-	 *						Couldn't write in Pos.txt
+	 *						Couldn't open pos.txt
+	 *						Couldn't close pos.txt
+	 *						Couldn't write in pos.txt
 	 */
 	int writePosTxt(ball_t *Red, ball_t *Yellow, ball_t *White){
-		FILE *PosTxt = fopen("Pos.txt", "w");
-		if(PosTxt == NULL) {perror("Error : couldn't open Pos.txt"); return -1;}
+		FILE *PosTxt = fopen("pos.txt", "w");
+		if(PosTxt == NULL) {perror("Error : couldn't open pos.txt"); return -1;}
 		if(1 > fprintf(PosTxt, "Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d", Red->Coordinates.X, Red->Coordinates.Y, Red->Coordinates.Score, Yellow->Coordinates.X, Yellow->Coordinates.Y, Yellow->Coordinates.Score, White->Coordinates.X, White->Coordinates.Y, White->Coordinates.Score)){
-			fprintf(stderr, "Error : couldn't write in Pos.txt\n");
+			fprintf(stderr, "Error : couldn't write in pos.txt\n");
 			int err = ferror(PosTxt);
 			if(err){
 				fprintf(stderr, "Cause: error %d\n", err);
@@ -593,6 +593,6 @@ int main(int argc, char **argv){
 			}
 			return -1;
 		}
-		if(fclose(PosTxt)) {perror("Error: couldn't close Pos.txt"); return -1;}
+		if(fclose(PosTxt)) {perror("Error: couldn't close pos.txt"); return -1;}
 		return 0;
 	}
