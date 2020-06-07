@@ -163,7 +163,7 @@ int findBalls(pixmap_t *Pixels, data_t *data, coordinate_t *Red, coordinate_t *Y
 }
 
 int writePosTxt(coordinate_t *Red, coordinate_t *Yellow, coordinate_t *White){
-	FILE *posTxt = fopen("pos.txt", "w");
+	FILE *PosTxt = fopen("pos.txt", "w");
 	if(PosTxt == NULL) {perror("Je ne sais pas ce que tu fais avec le fichier pos.txt mais je n'arrive pas a le trouver."); return -1;}
 	if(!fprintf(PosTxt, "Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d", Red->X, Red->Y, Red->Score, Yellow->X, Yellow->Y, Yellow->Score, White->X, White->Y, White->Score)){
 		fprintf(stderr, "Mon cher journal. Aujourd'hui j'ai essayé d'écrire dans pos.txt mais je n'ai pas réussi. Je suis en profonde déprime.\n");
