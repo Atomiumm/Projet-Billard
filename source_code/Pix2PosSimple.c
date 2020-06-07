@@ -65,8 +65,8 @@ int readArguments(int argc, char **argv, data_t *data){
 
 int readPixmap(pixmap_t *Pixels){
 	FILE *PixmapBin;
-	PixmapBin = fopen("Pixmap.bin", "rb");
-	if(PixmapBin == NULL){perror("Je ne sais pas ce que tu fais avec le fichier Pixmap.bin mais je n'arrive pas a le trouver.");return -1;}
+	PixmapBin = fopen("pixmap.bin", "rb");
+	if(PixmapBin == NULL){perror("Je ne sais pas ce que tu fais avec le fichier pixmap.bin mais je n'arrive pas a le trouver.");return -1;}
 	if(fread(&(Pixels->Width), sizeof(unsigned int), 1, PixmapBin) != 1){
 		fprintf(stderr, "Je n'arrive pas a trouver la largeur de l'image\n");
 		if(feof(PixmapBin)) fprintf(stderr, "J'ai enfin atteint la fin de ce maudit fichier\n");
@@ -104,9 +104,9 @@ int readPixmap(pixmap_t *Pixels){
 		free(Pixels->Pixmap);
 		goto problem;
 	}
-	if(fclose(PixmapBin)) perror("J'ai eu tellement de mal a ouvrir le fichier Pixmap.bin que je refuse de le fermer!");
+	if(fclose(PixmapBin)) perror("J'ai eu tellement de mal a ouvrir le fichier pixmap.bin que je refuse de le fermer!");
 	return 0;
-	problem: {if(fclose(PixmapBin)) perror("J'ai eu tellement de mal a ouvrir le fichier Pixmap.bin que je refuse de le fermer!"); return -1;}
+	problem: {if(fclose(PixmapBin)) perror("J'ai eu tellement de mal a ouvrir le fichier pixmap.bin que je refuse de le fermer!"); return -1;}
 }
 
 int checkColour(int pixel, colour_t *Min, colour_t *Max){
@@ -163,10 +163,10 @@ int findBalls(pixmap_t *Pixels, data_t *data, coordinate_t *Red, coordinate_t *Y
 }
 
 int writePosTxt(coordinate_t *Red, coordinate_t *Yellow, coordinate_t *White){
-	FILE *PosTxt = fopen("Pos.txt", "w");
-	if(PosTxt == NULL) {perror("Je ne sais pas ce que tu fais avec le fichier Pos.txt mais je n'arrive pas a le trouver."); return -1;}
+	FILE *posTxt = fopen("pos.txt", "w");
+	if(PosTxt == NULL) {perror("Je ne sais pas ce que tu fais avec le fichier pos.txt mais je n'arrive pas a le trouver."); return -1;}
 	if(!fprintf(PosTxt, "Red: %d, %d, %d\nYellow: %d, %d, %d\nWhite: %d, %d, %d", Red->X, Red->Y, Red->Score, Yellow->X, Yellow->Y, Yellow->Score, White->X, White->Y, White->Score)){
-		fprintf(stderr, "Mon cher journal. Aujourd'hui j'ai essayé d'écrire dans Pos.txt mais je n'ai pas réussi. Je suis en profonde déprime.\n");
+		fprintf(stderr, "Mon cher journal. Aujourd'hui j'ai essayé d'écrire dans pos.txt mais je n'ai pas réussi. Je suis en profonde déprime.\n");
 		int err = ferror(PosTxt);
 		if(err){
 			fprintf(stderr, "Il y a une erreur bizarre: %d, cherche sur google\n", err);
@@ -174,7 +174,7 @@ int writePosTxt(coordinate_t *Red, coordinate_t *Yellow, coordinate_t *White){
 		}
 		return -1;
 	}
-	if(fclose(PosTxt)){perror("J'ai eu tellement de mal a ouvrir le fichier Pixmap.bin que je refuse de le fermer!"); return -1;}
+	if(fclose(PosTxt)){perror("J'ai eu tellement de mal a ouvrir le fichier pixmap.bin que je refuse de le fermer!"); return -1;}
 	fprintf(stdout, "J'ai réussi! Ma vie a enfin un sens!\n");
 	return 0;
 }
